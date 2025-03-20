@@ -1,11 +1,5 @@
 use clap::{Parser, ValueEnum};
 
-#[derive(Parser, Clone, Debug, ValueEnum)]
-pub enum TestType {
-    Icp,
-    IcpEvm,
-}
-
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
 pub struct IcTestArgs {
@@ -28,12 +22,4 @@ pub struct IcTestArgs {
     /// Generate EVM contracts?
     #[arg(long, default_value_t = false)]
     pub evm_contracts: bool,
-
-    /// Comma-separated canister names
-    #[arg(long, default_value_t = String::from(""))]
-    pub canister_names: String,
-
-    /// Comma-separated test types for each canister (icp,icp-evm)
-    #[arg(long, default_value_t = String::from(""))]
-    pub test_types: String,
 }
