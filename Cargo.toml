@@ -1,0 +1,33 @@
+[package]
+name = "ic-test"
+version = "0.1.0"
+edition = "2024"
+description = "This tool helps to organize IC canister testing as well as cross-testing for ICP and EVM."
+keywords = ["ic", "internet-computer", "testing"]
+license = "MIT"
+repository = "https://github.com/wasm-forge/ic-test"
+
+[[bin]]
+name = "ic-test"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.32", features = ["derive"] }
+anyhow = { version = "1.0.97", default-features = false }
+env_logger = "0.11.7"
+
+proc-macro2 = "1.0"
+syn = "2.0"
+quote = "1.0"
+candid_parser = {path = "../candid/rust/candid_parser"}
+ic-cdk-bindgen = {path = "../cdk-rs/src/ic-cdk-bindgen" }
+prettyplease = "0.2.31"
+serde_json = { version = "1.0"}
+serde = "1.0.219"
+regress = "0.10.3"
+
+
+[build-dependencies]
+candid_parser = {path = "../candid/rust/candid_parser"}
+ic-cdk-bindgen = {path = "../cdk-rs/src/ic-cdk-bindgen" }
+
