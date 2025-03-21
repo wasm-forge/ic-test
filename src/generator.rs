@@ -4,9 +4,14 @@ use std::{
 };
 
 use anyhow::Error;
-use ic_cdk_bindgen::code_generator;
+use ic_cdk_bindgen::code_generator::{self, CustomProvider};
 
-use crate::{arguments::IcTestArgs, dfx_json::parse_dfx_json};
+use crate::{
+    arguments::IcTestArgs,
+    dfx_json::{CanisterSetup, parse_dfx_json},
+};
+
+use askama::Template;
 
 pub async fn get_textual_content(path_or_url: &str) -> Result<String, Error> {
     let local_path = Path::new(path_or_url);
@@ -24,6 +29,14 @@ pub async fn get_textual_content(path_or_url: &str) -> Result<String, Error> {
     }
 }
 
+#[derive(Template)]
+#[template(path = "mod.rs.txt")]
+struct ModRsTemplate<'a> {
+    canisters: &'a Vec<CanisterSetup>,
+}
+
+struct MyProvider;
+
 pub async fn generate(args: &IcTestArgs) -> Result<(), Error> {
     let canisters = parse_dfx_json(args)?;
 
@@ -38,31 +51,30 @@ pub async fn generate(args: &IcTestArgs) -> Result<(), Error> {
         let mut mod_file: PathBuf = bindings_path.clone();
         mod_file.push("mod.rs");
 
-        let mut mod_content = String::new();
+        let mod_template = ModRsTemplate {
+            canisters: &canisters,
+        };
 
-        for canister in canisters.iter() {
-            mod_content.push_str(&format!("mod {};", canister.canister_name));
-        }
+        let mod_content = mod_template.render()?;
 
-        let rust_code =
-            syn::parse_str::<syn::File>(&mod_content).expect("Invalid Rust code produced!");
-
-        let formatted_code = prettyplease::unparse(&rust_code);
-
-        fs::write(mod_file, formatted_code)
+        fs::write(mod_file, mod_content)
             .unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
     }
 
+    // generate candid files for each canister
     for canister in canisters.iter() {
-        if let Some(candid) = &canister.candid {
-            // generate candid content
-            let candid_content = get_textual_content(candid).await?;
+        if let Some(gen_candid_file) = &canister.gen_candid_file {
+            // read candid
+            let candid_content = fs::read_to_string(gen_candid_file)?;
 
             let mut canister_file = bindings_path.clone();
             canister_file.push(format!("{}.rs", &canister.canister_name));
 
             // try parse candid file
             let conf = code_generator::Config::new();
+
+            // set target to some provider
+            //conf.set_target(code_generator::Target::CustomProvider(MyProvider {}));
 
             let (env, actor) = candid_parser::typing::check_str(&candid_content, true).unwrap();
 

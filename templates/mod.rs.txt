@@ -1,0 +1,8 @@
+
+{% for c in canisters %}
+// candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
+// generated from: {{ c.gen_candid_file.clone().unwrap_or("...".to_owned()) }}
+mod {{ c.canister_name }};
+{% endfor %}
+
+
