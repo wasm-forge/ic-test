@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::arguments::IcTestArgs;
+use super::arguments::IcTestArgs;
 
 // adding dependencies from the command line
 pub fn add_toml_dependencies(_args: &IcTestArgs) -> anyhow::Result<()> {

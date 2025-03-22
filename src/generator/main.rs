@@ -1,7 +1,7 @@
 mod arguments;
+mod candid_to_rust;
 mod dependencies;
 mod dfx_json;
-mod generator;
 mod ic_test_json;
 
 use arguments::IcTestArgs;
@@ -11,7 +11,7 @@ use ic_test_json::{init_test_config, store_test_config};
 fn process_arguments(args: IcTestArgs) -> anyhow::Result<()> {
     init_test_config(&args)?;
 
-    generator::generate(&args)?;
+    candid_to_rust::generate(&args)?;
 
     store_test_config(&args)?;
     Ok(())

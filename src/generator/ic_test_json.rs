@@ -3,7 +3,7 @@ use std::{cell::RefCell, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
-use crate::arguments::IcTestArgs;
+use super::arguments::IcTestArgs;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct IcTestJson {

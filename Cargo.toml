@@ -7,9 +7,14 @@ keywords = ["ic", "internet-computer", "testing"]
 license = "MIT"
 repository = "https://github.com/wasm-forge/ic-test"
 
+[lib]
+name = "ic_test"
+path = "src/lib.rs"
+crate-type = ["lib"]
+
 [[bin]]
 name = "ic-test"
-path = "src/main.rs"
+path = "src/generator/main.rs"
 
 [dependencies]
 clap = { version = "4.5.32", features = ["derive"] }
@@ -18,20 +23,19 @@ env_logger = "0.11.7"
 
 syn = "2.0"
 quote = "1.0"
-candid_parser = {path = "../candid/rust/candid_parser"}
-ic-cdk-bindgen = {path = "../cdk-rs/src/ic-cdk-bindgen" }
+candid_parser = { path = "../candid/rust/candid_parser" }
+ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
 prettyplease = "0.2.31"
-serde_json = { version = "1.0"}
+serde_json = { version = "1.0" }
 serde = "1.0.219"
 regress = "0.10.3"
 serde-json-schema = "0.1.1"
 reqwest = "0.12.15"
-tokio = {version = "1.44.1", features = ["full"]}
+tokio = { version = "1.44.1", features = ["full"] }
 fuzzy-select = "0.1.3"
 askama = "0.12.1"
 
 
 [build-dependencies]
-candid_parser = {path = "../candid/rust/candid_parser"}
-ic-cdk-bindgen = {path = "../cdk-rs/src/ic-cdk-bindgen" }
-
+candid_parser = { path = "../candid/rust/candid_parser" }
+ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }

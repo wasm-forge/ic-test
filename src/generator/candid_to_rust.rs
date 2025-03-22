@@ -3,7 +3,7 @@ use std::{env, fs, path::PathBuf};
 use anyhow::Error;
 use ic_cdk_bindgen::code_generator;
 
-use crate::{
+use super::{
     arguments::IcTestArgs,
     dfx_json::{parse_dfx_json, CanisterSetup},
 };
