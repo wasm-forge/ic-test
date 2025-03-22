@@ -1,5 +1,9 @@
+use std::sync::Arc;
+
 use candid::{decode_one, encode_one, CandidType};
+use ic::http_outcalls::handle_http_outcalls;
 use serde::Deserialize;
+use tokio::task;
 
 mod evm;
 mod ic;
@@ -18,10 +22,18 @@ pub struct IcTest {
 
 impl IcTest {
     pub async fn new() -> Self {
-        Self {
+        let result = Self {
             ic: Ic::new().await,
             evm: Evm::new(),
-        }
+        };
+
+        let pic = Arc::downgrade(&result.ic.pic);
+        task::spawn(handle_http_outcalls(
+            pic,
+            result.evm.rpc_url.clone(),
+            vec![result.evm.rpc_url.to_string()],
+        ));
+        result
     }
 }
 

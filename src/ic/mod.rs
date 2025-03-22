@@ -11,10 +11,12 @@ use tokio::sync::Mutex;
 pub mod caller;
 pub mod deployer;
 pub mod provider;
-mod test_principals;
+
+pub(crate) mod http_outcalls;
+pub(crate) mod test_principals;
 
 pub struct Ic {
-    pic: Arc<Mutex<PocketIc>>,
+    pub pic: Arc<Mutex<PocketIc>>,
 }
 
 impl Ic {
