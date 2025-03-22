@@ -1,8 +1,10 @@
 mod arguments;
 mod candid_to_rust;
+mod common;
 mod dependencies;
 mod dfx_json;
 mod ic_test_json;
+mod test_structure;
 
 use std::path::Path;
 
@@ -32,8 +34,10 @@ fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Resu
         }
     }
 
+    test_structure::generate(args, setup)?;
+
     // TODO: always try to generate?
-    candid_to_rust::generate(setup)?;
+    candid_to_rust::generate(args, setup)?;
 
     Ok(())
 }

@@ -1,3 +1,5 @@
+use alloy::sol;
+
 type Caller = ic_test::IcUser;
 type Deployer = ic_test::IcUser;
 type DeployerBuilder<C> = ic_test::DeployerBuilder<C, Caller>;

@@ -6,7 +6,10 @@ use std::{
 use anyhow::Error;
 use ic_cdk_bindgen::code_generator;
 
-use crate::ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup};
+use crate::{
+    arguments::IcTestArgs,
+    ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup},
+};
 
 use askama::Template;
 
@@ -17,10 +20,11 @@ struct ModRsTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
+pub fn generate(args: &IcTestArgs, setup: &IcTestSetup) -> Result<(), Error> {
     // current folder
     let mut bindings_path = env::current_dir()?;
-    bindings_path.push("tests/bindings");
+    bindings_path.push(args.test_folder.clone());
+    bindings_path.push("src/bindings");
 
     fs::create_dir_all(&bindings_path)?;
 
