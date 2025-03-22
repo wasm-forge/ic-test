@@ -1,3 +1,6 @@
+type Caller = ic_test::IcUser;
+type Deployer = ic_test::IcUser;
+type DeployerBuilder<C> = ic_test::DeployerBuilder<C, Caller>;
 
 {% for c in canisters %}
 // candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
