@@ -9,7 +9,7 @@ mod {{ c.canister_name }};
 sol!(
     #[sol(rpc)]
     {{ c.name }},
-    {{ c.sol_json}},
+    "{{ c.sol_json}}",
 );
 {% endfor %}
 
