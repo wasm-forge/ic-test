@@ -30,6 +30,7 @@ pub struct JsonCanister {
     pub specified_id: Option<String>,
 }
 
+#[allow(dead_code)]
 pub struct CanisterSetup {
     pub canister_name: String,
     pub candid: Option<String>,

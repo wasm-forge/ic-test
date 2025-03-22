@@ -1,7 +1,7 @@
 [package]
 name = "ic-test"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "This tool helps to organize IC canister testing as well as cross-testing for ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
 license = "MIT"

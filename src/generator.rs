@@ -1,11 +1,11 @@
 use std::{env, fs, path::PathBuf};
 
 use anyhow::Error;
-use ic_cdk_bindgen::code_generator::{self};
+use ic_cdk_bindgen::code_generator;
 
 use crate::{
     arguments::IcTestArgs,
-    dfx_json::{CanisterSetup, parse_dfx_json},
+    dfx_json::{parse_dfx_json, CanisterSetup},
 };
 
 use askama::Template;
@@ -16,11 +16,7 @@ struct ModRsTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
 }
 
-struct MyProvider;
-
 pub fn generate(args: &IcTestArgs) -> Result<(), Error> {
-    //add_toml_dependencies(args)?;
-
     let canisters = parse_dfx_json(args)?;
 
     // current folder
@@ -41,17 +37,21 @@ pub fn generate(args: &IcTestArgs) -> Result<(), Error> {
             canister_file.push(format!("{}.rs", &canister.canister_name));
 
             // try parse candid file
-            let conf = code_generator::Config::new();
+            let mut config = code_generator::Config::new();
 
-            // set target to some provider
-            //conf.set_target(code_generator::Target::CustomProvider(MyProvider {}));
+            config.set_target(code_generator::Target::Provider);
+            config.set_service_name(format!("{}Canister", canister.canister_name));
 
             let (env, actor) = candid_parser::typing::check_str(&candid_content, true).unwrap();
 
-            let content = ic_cdk_bindgen::code_generator::compile(&conf, &env, &actor);
+            let content = ic_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
             fs::write(&canister_file, content)
                 .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.canister_name));
+            let output = std::process::Command::new("rustfmt")
+                .arg(&canister_file)
+                .output();
+            println!("{:?}", output);
         }
     }
 
