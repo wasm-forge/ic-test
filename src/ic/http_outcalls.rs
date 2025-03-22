@@ -6,21 +6,18 @@ use pocket_ic::{
     nonblocking::PocketIc,
 };
 use std::{sync::Weak, time::Duration};
-use tokio::{sync::Mutex, time::sleep};
+use tokio::time::sleep;
 
 /// This function run a loop that fetches pending HTTP outcalls from pocket-ic
 /// and handles them either by forward them to anvil or by replaying responses
 /// that were recorded by `record_http_responses` below.
 pub async fn handle_http_outcalls(
-    pocket_ic: Weak<Mutex<PocketIc>>,
+    pocket_ic: Weak<PocketIc>,
     anvil: reqwest::Url,
     rpc_nodes: Vec<String>,
 ) {
     while let Some(pic) = pocket_ic.upgrade() {
-        let requests = {
-            let pic = pic.lock().await;
-            pic.get_canister_http().await
-        };
+        let requests = { pic.get_canister_http().await };
 
         sleep(Duration::from_millis(50)).await;
 
@@ -28,7 +25,6 @@ pub async fn handle_http_outcalls(
             let url = request.url.clone();
             if rpc_nodes.contains(&url) {
                 let response = forward_http(request, anvil.to_string()).await;
-                let pic = pic.lock().await;
                 pic.mock_canister_http_response(response).await;
             } else {
                 println!("MISSING {},", request.url);
