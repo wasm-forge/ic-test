@@ -6,7 +6,6 @@ use std::{
 use candid::Principal;
 use pocket_ic::{nonblocking::PocketIc, PocketIcBuilder};
 use test_principals::TEST_PRINCIPALS;
-use tokio::sync::Mutex;
 
 pub mod caller;
 pub mod deployer;
@@ -16,7 +15,7 @@ pub(crate) mod http_outcalls;
 pub(crate) mod test_principals;
 
 pub struct Ic {
-    pub pic: Arc<Mutex<PocketIc>>,
+    pub pic: Arc<PocketIc>,
 }
 
 impl Ic {
@@ -36,9 +35,7 @@ impl Ic {
         )
         .await;
 
-        Self {
-            pic: Arc::new(Mutex::new(pic)),
-        }
+        Self { pic: Arc::new(pic) }
     }
 
     pub fn test_user_count(&self) -> usize {
@@ -67,14 +64,17 @@ impl Ic {
     }
 
     pub async fn tick(&self) {
-        let pic = self.pic.lock().await;
-        pic.advance_time(Duration::from_secs(1)).await;
-        pic.tick().await;
+        self.pic.advance_time(Duration::from_secs(1)).await;
+        self.pic.tick().await;
+    }
+
+    pub fn pocket_ic(&self) -> &PocketIc {
+        &self.pic
     }
 }
 
 #[derive(Clone)]
 pub struct IcUser {
     pub principal: Principal,
-    pic: Arc<Mutex<PocketIc>>,
+    pic: Arc<PocketIc>,
 }

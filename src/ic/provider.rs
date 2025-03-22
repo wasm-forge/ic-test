@@ -48,11 +48,11 @@ impl Provider for IcUser {
         settings: CanisterSettings,
         specified_id: Option<CanisterId>,
     ) -> Result<CanisterId, RejectResponse> {
-        let pic = self.pic.lock().await;
         let settings = convert(settings);
         let id = match specified_id {
             Some(id) => {
-                pic.create_canister_with_id(Some(self.principal), Some(settings), id)
+                self.pic
+                    .create_canister_with_id(Some(self.principal), Some(settings), id)
                     .await
                     .map_err(|err| RejectResponse {
                         reject_code: RejectCode::CanisterReject,
@@ -63,7 +63,8 @@ impl Provider for IcUser {
                 id
             }
             None => {
-                pic.create_canister_with_settings(Some(self.principal), Some(settings))
+                self.pic
+                    .create_canister_with_settings(Some(self.principal), Some(settings))
                     .await
             }
         };
@@ -75,8 +76,7 @@ impl Provider for IcUser {
         canister_id: CanisterId,
         cycles: u128,
     ) -> Result<u128, RejectResponse> {
-        let pic = self.pic.lock().await;
-        Ok(pic.add_cycles(canister_id, cycles).await)
+        Ok(self.pic.add_cycles(canister_id, cycles).await)
     }
 
     async fn install_code(
@@ -86,19 +86,21 @@ impl Provider for IcUser {
         wasm_module: Vec<u8>,
         arg: Vec<u8>,
     ) -> Result<(), RejectResponse> {
-        let pic = self.pic.lock().await;
         match mode {
             CanisterInstallMode::Install => {
-                pic.install_canister(canister_id, wasm_module, arg, Some(self.principal))
+                self.pic
+                    .install_canister(canister_id, wasm_module, arg, Some(self.principal))
                     .await;
                 Ok(())
             }
             CanisterInstallMode::Reinstall => {
-                pic.reinstall_canister(canister_id, wasm_module, arg, Some(self.principal))
+                self.pic
+                    .reinstall_canister(canister_id, wasm_module, arg, Some(self.principal))
                     .await
             }
             CanisterInstallMode::Upgrade(_upgrade_flags) => {
-                pic.upgrade_canister(canister_id, wasm_module, arg, Some(self.principal))
+                self.pic
+                    .upgrade_canister(canister_id, wasm_module, arg, Some(self.principal))
                     .await
             }
         }
@@ -110,8 +112,8 @@ impl Provider for IcUser {
         method: &str,
         payload: Vec<u8>,
     ) -> Result<Vec<u8>, RejectResponse> {
-        let pic = self.pic.lock().await;
-        pic.query_call(canister_id, self.principal, method, payload)
+        self.pic
+            .query_call(canister_id, self.principal, method, payload)
             .await
     }
 
@@ -121,8 +123,8 @@ impl Provider for IcUser {
         method: &str,
         payload: Vec<u8>,
     ) -> Result<Vec<u8>, RejectResponse> {
-        let pic = self.pic.lock().await;
-        pic.update_call(canister_id, self.principal, method, payload)
+        self.pic
+            .update_call(canister_id, self.principal, method, payload)
             .await
     }
 }
