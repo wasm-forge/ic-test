@@ -38,7 +38,7 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
             // try parse candid file
             let mut config = code_generator::Config::new();
 
-            config.set_target(code_generator::Target::Provider);
+            config.set_target(code_generator::Target::Builder);
             config.set_service_name(format!("{}Canister", canister.canister_name));
 
             let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();

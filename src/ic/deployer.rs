@@ -30,29 +30,28 @@ pub enum DeployMode {
 }
 
 pub trait Deployer {
-    type Provider: Provider;
     type Caller: Caller;
 
     fn deploy<Canister>(
         &self,
         args: Result<Vec<u8>, candid::error::Error>,
         new: fn(&Self::Caller, Principal) -> Canister,
-    ) -> DeployBuilder<Canister, Self::Provider, Self::Caller>;
+    ) -> DeployBuilder<Canister, Self::Caller>;
 }
 
-pub struct DeployBuilder<Canister, P: Provider, Caller> {
-    pub provider: P,
-    pub caller: Caller,
+pub struct DeployBuilder<Canister, C: Caller> {
+    pub provider: C::Provider,
+    pub caller: C,
     pub canister_id: Option<Principal>,
     pub mode: DeployMode,
     pub settings: CanisterSettings,
     pub cycles: u128,
     pub wasm: Vec<u8>,
     pub args: Result<Vec<u8>, candid::error::Error>,
-    pub new: fn(&Caller, Principal) -> Canister,
+    pub new: fn(&C, Principal) -> Canister,
 }
 
-impl<Canister, P: Provider, Caller> DeployBuilder<Canister, P, Caller> {
+impl<Canister, C: Caller> DeployBuilder<Canister, C> {
     pub fn with_canister_id(self, canister_id: Principal) -> Self {
         Self {
             canister_id: Some(canister_id),
@@ -141,14 +140,13 @@ impl<Canister, P: Provider, Caller> DeployBuilder<Canister, P, Caller> {
 }
 
 impl Deployer for IcUser {
-    type Provider = IcUser;
     type Caller = IcUser;
 
     fn deploy<Canister>(
         &self,
         args: Result<Vec<u8>, candid::error::Error>,
         new: fn(&Self::Caller, Principal) -> Canister,
-    ) -> DeployBuilder<Canister, Self::Provider, Self::Caller> {
+    ) -> DeployBuilder<Canister, Self::Caller> {
         DeployBuilder {
             provider: self.clone(),
             caller: self.clone(),

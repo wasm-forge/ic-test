@@ -65,6 +65,12 @@ impl Ic {
             pic: Arc::clone(&self.pic),
         }
     }
+
+    pub async fn tick(&self) {
+        let pic = self.pic.lock().await;
+        pic.advance_time(Duration::from_secs(1)).await;
+        pic.tick().await;
+    }
 }
 
 #[derive(Clone)]
