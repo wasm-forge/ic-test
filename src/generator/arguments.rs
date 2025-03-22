@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{ArgAction, Parser};
 
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
@@ -26,4 +26,8 @@ pub struct IcTestArgs {
     /// Generate EVM contracts?
     #[arg(long, default_value_t = false)]
     pub evm_contracts: bool,
+
+    /// Add solidity json to the generator script
+    #[arg(long, action = ArgAction::Append)]
+    pub add_sol_json: Vec<String>,
 }

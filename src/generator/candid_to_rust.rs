@@ -1,12 +1,12 @@
-use std::{env, fs, path::PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Error;
 use ic_cdk_bindgen::code_generator;
 
-use super::{
-    arguments::IcTestArgs,
-    dfx_json::{parse_dfx_json, CanisterSetup},
-};
+use crate::ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup};
 
 use askama::Template;
 
@@ -14,21 +14,20 @@ use askama::Template;
 #[template(path = "mod.rs.txt")]
 struct ModRsTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
+    contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate(args: &IcTestArgs) -> Result<(), Error> {
-    let canisters = parse_dfx_json(args)?;
-
+pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
     // current folder
     let mut bindings_path = env::current_dir()?;
     bindings_path.push("tests/bindings");
 
     fs::create_dir_all(&bindings_path)?;
 
-    generate_mod_rs(&canisters, &bindings_path)?;
+    generate_mod_rs(setup, &bindings_path)?;
 
     // generate candid files for each canister
-    for canister in canisters.iter() {
+    for (_canister_name, canister) in setup.canisters.iter() {
         if let Some(gen_candid_file) = &canister.gen_candid_file {
             // read candid
             let candid_content = fs::read_to_string(gen_candid_file)?;
@@ -58,18 +57,21 @@ pub fn generate(args: &IcTestArgs) -> Result<(), Error> {
     Ok(())
 }
 
-fn generate_mod_rs(canisters: &Vec<CanisterSetup>, bindings_path: &PathBuf) -> Result<(), Error> {
-    Ok({
-        let mut mod_file: PathBuf = bindings_path.clone();
-        mod_file.push("mod.rs");
+fn generate_mod_rs(setup: &IcTestSetup, bindings_path: &Path) -> Result<(), Error> {
+    let mut mod_file: PathBuf = bindings_path.to_path_buf();
+    mod_file.push("mod.rs");
 
-        let mod_template = ModRsTemplate {
-            canisters: canisters,
-        };
+    let canisters: Vec<CanisterSetup> = setup.canisters.iter().map(|x| x.1.clone()).collect();
+    let contracts: Vec<ContractSetup> = setup.contracts.iter().map(|x| x.1.clone()).collect();
 
-        let mod_content = mod_template.render()?;
+    let mod_template = ModRsTemplate {
+        canisters: &canisters,
+        contracts: &contracts,
+    };
 
-        fs::write(mod_file, mod_content)
-            .unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
-    })
+    let mod_content = mod_template.render()?;
+
+    fs::write(mod_file, mod_content).unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
+
+    Ok(())
 }

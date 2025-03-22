@@ -3,15 +3,17 @@ use std::{collections::HashMap, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
+use crate::ic_test_json::{CanisterSetup, IcTestSetup};
+
 use super::arguments::IcTestArgs;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DfxJson {
-    pub canisters: Option<HashMap<String, JsonCanister>>,
+    pub canisters: Option<HashMap<String, DfxCanister>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct JsonCanister {
+pub struct DfxCanister {
     pub candid: Option<String>,
 
     pub init_arg_file: Option<String>,
@@ -30,16 +32,7 @@ pub struct JsonCanister {
     pub specified_id: Option<String>,
 }
 
-#[allow(dead_code)]
-pub struct CanisterSetup {
-    pub canister_name: String,
-    pub candid: Option<String>,
-    pub gen_candid_file: Option<String>, // the candid file used in generator
-    pub wasm: Option<String>,
-    pub specified_id: Option<String>,
-}
-
-pub fn get_gen_candid_file(canister_name: &str, canister: &JsonCanister) -> Option<String> {
+pub fn get_gen_candid_file(canister_name: &str, canister: &DfxCanister) -> Option<String> {
     // 1. try finding the local file
     if let Some(candid) = &canister.candid {
         let cached_did_path = Path::new(&candid);
@@ -61,7 +54,7 @@ pub fn get_gen_candid_file(canister_name: &str, canister: &JsonCanister) -> Opti
     None
 }
 
-pub fn parse_dfx_json(args: &IcTestArgs) -> anyhow::Result<Vec<CanisterSetup>> {
+pub fn parse_dfx_json(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
     let json_string = fs::read_to_string(&args.dfx_json)?;
 
     //    let json: serde_json::Value =
@@ -69,21 +62,25 @@ pub fn parse_dfx_json(args: &IcTestArgs) -> anyhow::Result<Vec<CanisterSetup>> {
 
     let json = from_str::<DfxJson>(&json_string)?;
 
-    let mut res = Vec::new();
-
-    if let Some(canisters) = json.canisters {
+    if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
-            let gen_candid_file = get_gen_candid_file(&canister_name, &canister);
+            let gen_candid_file = get_gen_candid_file(canister_name, canister);
 
-            res.push(CanisterSetup {
-                canister_name,
-                candid: canister.candid.clone(),
-                gen_candid_file,
-                wasm: canister.wasm.clone(),
-                specified_id: canister.specified_id,
-            })
+            if let Some(candid) = &canister.candid {
+                let canister_setup = CanisterSetup {
+                    canister_name: canister_name.clone(),
+                    candid: Some(candid.clone()),
+                    gen_candid_file,
+                    wasm: canister.wasm.clone(),
+                    specified_id: None,
+                };
+
+                let _ = setup
+                    .canisters
+                    .insert(canister_name.clone(), canister_setup);
+            }
         }
     }
 
-    Ok(res)
+    Ok(())
 }

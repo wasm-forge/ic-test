@@ -1018,6 +1018,7 @@ dependencies = [
  "env_logger",
  "fuzzy-select",
  "ic-cdk-bindgen",
+ "indexmap",
  "prettyplease",
  "quote",
  "regress",
@@ -1194,6 +1195,7 @@ checksum = "3954d50fe15b02142bf25d3b8bdadb634ec3948f103d04ffe3031bc8fe9d7058"
 dependencies = [
  "equivalent",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]

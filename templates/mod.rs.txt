@@ -5,4 +5,11 @@
 mod {{ c.canister_name }};
 {% endfor %}
 
+{% for c in contracts %}
+sol!(
+    #[sol(rpc)]
+    {{ c.name }},
+    {{ c.sol_json}},
+);
+{% endfor %}
 
