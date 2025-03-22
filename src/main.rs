@@ -1,20 +1,25 @@
 mod arguments;
+mod dependencies;
 mod dfx_json;
 mod generator;
+mod ic_test_json;
 
 use arguments::IcTestArgs;
 use clap::Parser;
+use ic_test_json::{init_test_config, store_test_config};
 
-async fn process_arguments(args: IcTestArgs) -> anyhow::Result<()> {
-    generator::generate(&args).await?;
+fn process_arguments(args: IcTestArgs) -> anyhow::Result<()> {
+    init_test_config(&args)?;
 
+    generator::generate(&args)?;
+
+    store_test_config(&args)?;
     Ok(())
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
     env_logger::init();
     let args = IcTestArgs::try_parse()?;
-    process_arguments(args).await?;
+    process_arguments(args)?;
     Ok(())
 }

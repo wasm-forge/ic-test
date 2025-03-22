@@ -11,6 +11,10 @@ pub struct IcTestArgs {
     #[arg(long, default_value_t = String::from("dfx.json"))]
     pub dfx_json: String,
 
+    /// Path to ic-test.json file storing the current ic-test configuration
+    #[arg(long, default_value_t = String::from("ic-test.json"))]
+    pub ic_test_json: String,
+
     /// Generate all canisters in dfx.json?
     #[arg(long, short = 'j', default_value_t = true)]
     pub use_dfx_json: bool,
