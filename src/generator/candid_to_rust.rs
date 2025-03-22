@@ -30,7 +30,7 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
     for (_canister_name, canister) in setup.canisters.iter() {
         if let Some(gen_candid_file) = &canister.gen_candid_file {
             // read candid
-            let candid_content = fs::read_to_string(gen_candid_file)?;
+            let candid_path = Path::new(&gen_candid_file);
 
             let mut canister_file = bindings_path.clone();
             canister_file.push(format!("{}.rs", &canister.canister_name));
@@ -41,7 +41,7 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
             config.set_target(code_generator::Target::Provider);
             config.set_service_name(format!("{}Canister", canister.canister_name));
 
-            let (env, actor) = candid_parser::typing::check_str(&candid_content, true).unwrap();
+            let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
 
             let content = ic_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
