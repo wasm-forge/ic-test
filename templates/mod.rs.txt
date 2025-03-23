@@ -1,3 +1,5 @@
+// THIS IS A GENERATED FILE, DO NOT EDIT!
+
 #![allow(dead_code, unused_imports, non_snake_case)]
 
 type CallMode = ic_test::CallMode;
@@ -9,8 +11,9 @@ type DeployBuilder<C> = ic_test::DeployBuilder<C, Caller>;
 {% for c in canisters %}
 // candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
 // generated from: {{ c.gen_candid_file.clone().unwrap_or("...".to_owned()) }}
-pub mod {{ c.canister_name }};
+pub mod {{ c.name }};
 {% endfor %}
+
 {% if !contracts.is_empty() %}
 pub mod evm {
     use alloy::sol;

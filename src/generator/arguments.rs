@@ -1,33 +1,65 @@
-use clap::{ArgAction, Parser};
+use clap::{Parser, Subcommand, ValueEnum};
+
+#[derive(Clone, Debug, ValueEnum)]
+pub enum IcTestCommand {
+    Init,
+    Update,
+    Add,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum AddCommand {
+    Canister {
+        // Canister name
+        name: String,
+
+        // Path to .wasm or .wasm.gz file
+        #[arg(long)]
+        wasm: Option<String>,
+    },
+    Contract {
+        // Contract name
+        name: String,
+
+        // Path to the solidity .json file
+        #[arg(long)]
+        sol_json: Option<String>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum Command {
+    /// Initialize something
+    Init {},
+    /// Update something
+    Update {},
+    /// Add canister or contract
+    Add {
+        /// Choose what you want to add
+        #[command(subcommand)]
+        command: AddCommand,
+    },
+}
 
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
 pub struct IcTestArgs {
-    /// Test folder to create
-    #[arg(long, short, default_value_t = String::from("tests"))]
-    pub test_folder: String,
-
-    /// Path to dfx.json file
-    #[arg(long, default_value_t = String::from("dfx.json"))]
-    pub dfx_json: String,
-
-    /// Path to ic-test.json file storing the current ic-test configuration
+    /// Choose which action you want to perform
+    #[command(subcommand)]
+    pub command: Command,
+    /// Path to ic-test.json file
     #[arg(long, default_value_t = String::from("ic-test.json"))]
     pub ic_test_json: String,
 
-    /// Generate all canisters in dfx.json?
-    #[arg(long, short = 'j', default_value_t = true)]
-    pub use_dfx_json: bool,
+    // Do not use dfx.json to gather information on the available canisters
+    #[arg(long)]
+    pub skip_dfx_json: Option<bool>,
 
-    /// Generate EVM tests?
-    #[arg(long, default_value_t = false)]
-    pub generate_evm_tests: bool,
+    // Do not use forge.toml to gather information on the available contracts
+    #[arg(long)]
+    pub skip_forge_toml: Option<bool>,
 
-    /// Generate EVM contracts?
-    #[arg(long, default_value_t = false)]
-    pub evm_contracts: bool,
-
-    /// Add solidity json to the generator script
-    #[arg(long, action = ArgAction::Append)]
-    pub add_sol_json: Vec<String>,
+    /// The test project folder
+    #[arg(long)]
+    pub test_folder: Option<String>,
 }

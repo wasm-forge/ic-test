@@ -3,7 +3,7 @@ use std::fs;
 use anyhow::Error;
 use askama::Template;
 
-use crate::{arguments::IcTestArgs, common::get_project_dir, ic_test_json::IcTestSetup};
+use crate::{common::get_test_project_dir, ic_test_json::IcTestSetup};
 
 #[derive(Template)]
 #[template(path = "lib.rs.txt")]
@@ -17,10 +17,10 @@ struct TestsRsTemplate {}
 #[template(path = "Cargo.toml.txt")]
 struct CargoTomlTemplate {}
 
-pub fn generate(args: &IcTestArgs, _setup: &IcTestSetup) -> Result<(), Error> {
-    let mut project_dir = get_project_dir()?;
+pub fn generate(setup: &IcTestSetup, is_update: bool) -> Result<(), Error> {
+    let _ = is_update;
 
-    project_dir.push(args.test_folder.clone());
+    let project_dir = get_test_project_dir(setup)?;
 
     fs::create_dir_all(&project_dir)?;
 

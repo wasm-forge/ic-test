@@ -6,38 +6,63 @@ mod dfx_json;
 mod ic_test_json;
 mod test_structure;
 
-use std::path::Path;
-
 use arguments::IcTestArgs;
 use clap::Parser;
-use dfx_json::parse_dfx_json;
-use ic_test_json::{init_test_config, store_test_config, ContractSetup, IcTestSetup};
+use dfx_json::{parse_dfx_json, parse_forge_toml};
+use ic_test_json::{init_test_config, store_test_config, IcTestSetup};
 
 fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    // TODO: always parse dfx.json?
-    parse_dfx_json(args, setup)?;
+    if !setup.skip_dfx_json {
+        parse_dfx_json(setup)?;
+    }
 
-    // parse added EVM contracts
-    for contract_json_path in &args.add_sol_json {
-        let path = Path::new(contract_json_path);
+    if !setup.skip_forge_toml {
+        parse_forge_toml(setup)?;
+    }
 
-        if let Some(stem) = path.file_stem() {
-            let name = stem.to_string_lossy().into_owned();
+    match &args.command {
+        arguments::Command::Init {} => {}
+        arguments::Command::Update {} => {}
+        arguments::Command::Add { command } => {
+            // either add a canister or a contract to the setup
+            match command {
+                arguments::AddCommand::Canister { name, wasm } => {
+                    println!("ADDING canister {name}");
+                }
+                arguments::AddCommand::Contract { name, sol_json } => {
+                    println!("ADDING contract {name}");
 
-            setup.contracts.insert(
-                name.clone(),
-                ContractSetup {
-                    name,
-                    sol_json: contract_json_path.clone(),
-                },
-            );
+                    /*
+                    // parse provided EVM contracts, add those to setup
+                    for contract_json_path in &args.add_sol_json {
+                        let path = Path::new(contract_json_path);
+
+                        if let Some(stem) = path.file_stem() {
+                            let name = stem.to_string_lossy().into_owned();
+
+                            setup.contracts.insert(
+                                name.clone(),
+                                ContractSetup {
+                                    name,
+                                    sol_json: contract_json_path.clone(),
+                                },
+                            );
+                        }
+                    }
+                    */
+                }
+            }
         }
     }
 
-    test_structure::generate(args, setup)?;
+    ///////////////////////////////////
+    // Generate / regenerate folders
 
-    // TODO: always try to generate?
-    candid_to_rust::generate(args, setup)?;
+    // generate structure
+    test_structure::generate(setup, true)?;
+
+    // generate candid
+    candid_to_rust::generate(setup)?;
 
     Ok(())
 }

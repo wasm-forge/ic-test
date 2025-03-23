@@ -6,10 +6,7 @@ use std::{
 use anyhow::Error;
 use ic_cdk_bindgen::code_generator;
 
-use crate::{
-    arguments::IcTestArgs,
-    ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup},
-};
+use crate::ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup};
 
 use askama::Template;
 
@@ -20,10 +17,10 @@ struct ModRsTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate(args: &IcTestArgs, setup: &IcTestSetup) -> Result<(), Error> {
+pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
     // current folder
     let mut bindings_path = env::current_dir()?;
-    bindings_path.push(args.test_folder.clone());
+    bindings_path.push(setup.test_folder.clone());
     bindings_path.push("src/bindings");
 
     fs::create_dir_all(&bindings_path)?;
@@ -37,20 +34,20 @@ pub fn generate(args: &IcTestArgs, setup: &IcTestSetup) -> Result<(), Error> {
             let candid_path = Path::new(&gen_candid_file);
 
             let mut canister_file = bindings_path.clone();
-            canister_file.push(format!("{}.rs", &canister.canister_name));
+            canister_file.push(format!("{}.rs", &canister.name));
 
             // try parse candid file
             let mut config = code_generator::Config::new();
 
             config.set_target(code_generator::Target::Builder);
-            config.set_service_name(format!("{}Canister", canister.canister_name));
+            config.set_service_name(format!("{}Canister", canister.name));
 
             let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
 
             let content = ic_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
             fs::write(&canister_file, content)
-                .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.canister_name));
+                .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.name));
             let output = std::process::Command::new("rustfmt")
                 .arg(&canister_file)
                 .output();

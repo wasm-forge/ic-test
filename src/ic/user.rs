@@ -66,7 +66,7 @@ impl Caller for IcUser {
     where
         ResultType: for<'a> Deserialize<'a> + CandidType,
     {
-        IcUser::call(&self, canister_id, call_mode, method, args)
+        IcUser::call(self, canister_id, call_mode, method, args)
     }
 }
 
@@ -78,6 +78,6 @@ impl Deployer for IcUser {
         args: Result<Vec<u8>, candid::error::Error>,
         new: fn(&Self::Caller, Principal) -> Canister,
     ) -> DeployBuilder<Canister, Self::Caller> {
-        IcUser::deploy(&self, args, new)
+        IcUser::deploy(self, args, new)
     }
 }

@@ -3,9 +3,10 @@ use std::{collections::HashMap, fs, path::Path};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
-use crate::ic_test_json::{CanisterSetup, IcTestSetup};
-
-use super::arguments::IcTestArgs;
+use crate::{
+    common::find_wasm,
+    ic_test_json::{CanisterSetup, IcTestSetup},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DfxJson {
@@ -54,33 +55,74 @@ pub fn get_gen_candid_file(canister_name: &str, canister: &DfxCanister) -> Optio
     None
 }
 
-pub fn parse_dfx_json(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    let json_string = fs::read_to_string(&args.dfx_json)?;
-
-    //    let json: serde_json::Value =
-    //        serde_json::from_str(&json_string).expect("JSON was not well-formatted");
+// gather canister information from dfx.json
+pub fn parse_dfx_json(setup: &mut IcTestSetup) -> anyhow::Result<()> {
+    let json_string = fs::read_to_string(&setup.dfx_json)?;
 
     let json = from_str::<DfxJson>(&json_string)?;
 
     if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
+            // prepare canister
             let gen_candid_file = get_gen_candid_file(canister_name, canister);
 
+            let wasm = find_wasm(canister_name, setup)?;
+
+            let mut canister_setup = CanisterSetup {
+                name: canister_name.clone(),
+                candid: None,
+                wasm,
+                gen_candid_file,
+                specified_id: None,
+            };
+
             if let Some(candid) = &canister.candid {
-                let canister_setup = CanisterSetup {
-                    canister_name: canister_name.clone(),
-                    candid: Some(candid.clone()),
+                canister_setup.candid = Some(candid.clone());
+            }
+
+            // store new canister setup
+            let _ = setup
+                .canisters
+                .insert(canister_name.clone(), canister_setup);
+        }
+    }
+
+    Ok(())
+}
+
+// gather contract information from forge.toml
+pub fn parse_forge_toml(setup: &mut IcTestSetup) -> anyhow::Result<()> {
+    /*
+        let json_string = fs::read_to_string(&setup.dfx_json)?;
+
+        let json = from_str::<DfxJson>(&json_string)?;
+
+        if let Some(canisters) = &json.canisters {
+            for (canister_name, canister) in canisters {
+                // prepare canister
+                let gen_candid_file = get_gen_candid_file(canister_name, canister);
+
+                let wasm = find_wasm(canister_name, setup)?;
+
+                let mut canister_setup = CanisterSetup {
+                    name: canister_name.clone(),
+                    candid: None,
+                    wasm,
                     gen_candid_file,
-                    wasm: canister.wasm.clone(),
                     specified_id: None,
                 };
 
+                if let Some(candid) = &canister.candid {
+                    canister_setup.candid = Some(candid.clone());
+                }
+
+                // store new canister setup
                 let _ = setup
                     .canisters
                     .insert(canister_name.clone(), canister_setup);
             }
         }
-    }
+    */
 
     Ok(())
 }
