@@ -23,7 +23,7 @@ pub fn get_test_project_dir(setup: &IcTestSetup) -> Result<PathBuf> {
     Ok(cur_dir)
 }
 
-// get path relative to the main project folder
+// get path relative to the main project
 pub fn get_relative_path(target_path: &Path, setup: &IcTestSetup) -> Result<PathBuf> {
     let _ = setup;
     let mut ret = PathBuf::new();

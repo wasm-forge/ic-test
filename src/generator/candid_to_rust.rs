@@ -6,7 +6,10 @@ use std::{
 use anyhow::Error;
 use ic_cdk_bindgen::code_generator;
 
-use crate::ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup};
+use crate::{
+    common::get_path_relative_to_test_dir,
+    ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup},
+};
 
 use askama::Template;
 
@@ -28,7 +31,7 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
     generate_mod_rs(setup, &bindings_path)?;
 
     // generate candid files for each canister
-    for (_canister_name, canister) in setup.canisters.iter() {
+    for (_canister_name, canister) in setup.icp_setup.canisters.iter() {
         if let Some(gen_candid_file) = &canister.gen_candid_file {
             // read candid
             let candid_path = Path::new(&gen_candid_file);
@@ -62,8 +65,31 @@ fn generate_mod_rs(setup: &IcTestSetup, bindings_path: &Path) -> Result<(), Erro
     let mut mod_file: PathBuf = bindings_path.to_path_buf();
     mod_file.push("mod.rs");
 
-    let canisters: Vec<CanisterSetup> = setup.canisters.iter().map(|x| x.1.clone()).collect();
-    let contracts: Vec<ContractSetup> = setup.contracts.iter().map(|x| x.1.clone()).collect();
+    let canisters: Vec<CanisterSetup> = setup
+        .icp_setup
+        .canisters
+        .iter()
+        .map(|x| {
+            let mut x = x.1.clone();
+            let path = Path::new(&x.wasm);
+            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            x.wasm = relative.to_string_lossy().to_string();
+            x
+        })
+        .collect();
+
+    let contracts: Vec<ContractSetup> = setup
+        .evm_setup
+        .contracts
+        .iter()
+        .map(|x| {
+            let mut x = x.1.clone();
+            let path = Path::new(&x.sol_json);
+            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            x.sol_json = relative.to_string_lossy().to_string();
+            x
+        })
+        .collect();
 
     let mod_template = ModRsTemplate {
         canisters: &canisters,

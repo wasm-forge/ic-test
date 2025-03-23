@@ -3,22 +3,20 @@ mod candid_to_rust;
 mod common;
 mod dependencies;
 mod dfx_json;
+mod foundry_toml;
 mod ic_test_json;
 mod test_structure;
 
 use arguments::IcTestArgs;
 use clap::Parser;
-use dfx_json::{parse_dfx_json, parse_forge_toml};
+use dfx_json::add_canisters;
+use foundry_toml::{add_contract, add_contracts};
 use ic_test_json::{init_test_config, store_test_config, IcTestSetup};
 
 fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    if !setup.skip_dfx_json {
-        parse_dfx_json(setup)?;
-    }
+    add_canisters(setup)?;
 
-    if !setup.skip_forge_toml {
-        parse_forge_toml(setup)?;
-    }
+    add_contracts(setup)?;
 
     match &args.command {
         arguments::Command::Init {} => {}
@@ -26,30 +24,13 @@ fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Resu
         arguments::Command::Add { command } => {
             // either add a canister or a contract to the setup
             match command {
-                arguments::AddCommand::Canister { name, wasm } => {
+                arguments::AddCommand::Canister { name, wasm: _ } => {
                     println!("ADDING canister {name}");
+                    // TODO
                 }
                 arguments::AddCommand::Contract { name, sol_json } => {
                     println!("ADDING contract {name}");
-
-                    /*
-                    // parse provided EVM contracts, add those to setup
-                    for contract_json_path in &args.add_sol_json {
-                        let path = Path::new(contract_json_path);
-
-                        if let Some(stem) = path.file_stem() {
-                            let name = stem.to_string_lossy().into_owned();
-
-                            setup.contracts.insert(
-                                name.clone(),
-                                ContractSetup {
-                                    name,
-                                    sol_json: contract_json_path.clone(),
-                                },
-                            );
-                        }
-                    }
-                    */
+                    add_contract(name, sol_json, setup)?;
                 }
             }
         }

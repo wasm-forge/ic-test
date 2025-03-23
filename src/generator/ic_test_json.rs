@@ -7,35 +7,75 @@ use serde_json::from_str;
 use super::arguments::IcTestArgs;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct IcTestSetup {
-    // Tests folder: the workspace project for generating tests and bindings
-    pub test_folder: String,
+pub struct EvmSetup {
+    // Path to foundry.toml file (default: "foundry.toml")
+    pub foundry_toml: String,
 
+    // Do not use foundry.toml to collect information on the existing contracts
+    pub skip_foundry_toml: bool,
+
+    // Path to found "foundry src" containing contract .sol files
+    pub foundry_src: String,
+
+    // Path to found "foundry out" containing contract Solidity json files
+    pub foundry_out: String,
+
+    // ETH contracts setup
+    pub contracts: IndexMap<String, ContractSetup>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct IcpSetup {
     // Path to dfx.json file (default: "dfx.json")
     pub dfx_json: String,
 
     // Do not use dfx.json to collect information on the existing canisters
     pub skip_dfx_json: bool,
 
-    // Do not use forge.toml to collect information on the existing contracts
-    pub skip_forge_toml: bool,
-
     // Canister setups
     pub canisters: IndexMap<String, CanisterSetup>,
+}
 
-    // ETH contract setup
-    pub contracts: IndexMap<String, ContractSetup>,
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct IcTestSetup {
+    // Tests folder: the workspace project for generating tests and bindings
+    pub test_folder: String,
+
+    // ICP settings
+    pub icp_setup: IcpSetup,
+
+    // EVM settings
+    pub evm_setup: EvmSetup,
+}
+
+impl Default for IcpSetup {
+    fn default() -> Self {
+        Self {
+            dfx_json: "dfx.json".to_string(),
+            skip_dfx_json: false,
+            canisters: IndexMap::new(),
+        }
+    }
+}
+
+impl Default for EvmSetup {
+    fn default() -> Self {
+        Self {
+            foundry_toml: "foundry.toml".to_string(),
+            foundry_src: "src".to_string(),
+            foundry_out: "out".to_string(),
+            skip_foundry_toml: false,
+            contracts: IndexMap::new(),
+        }
+    }
 }
 
 impl Default for IcTestSetup {
     fn default() -> Self {
         Self {
             test_folder: "tests".to_string(),
-            dfx_json: "dfx.json".to_string(),
-            skip_dfx_json: false,
-            skip_forge_toml: false,
-            canisters: IndexMap::new(),
-            contracts: IndexMap::new(),
+            icp_setup: IcpSetup::default(),
+            evm_setup: EvmSetup::default(),
         }
     }
 }
@@ -69,11 +109,11 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
     };
 
     if let Some(skip) = args.skip_dfx_json {
-        setup.skip_dfx_json = skip;
+        setup.icp_setup.skip_dfx_json = skip;
     }
 
     if let Some(skip) = args.skip_forge_toml {
-        setup.skip_forge_toml = skip;
+        setup.evm_setup.skip_foundry_toml = skip;
     }
 
     if let Some(test_folder) = &args.test_folder {

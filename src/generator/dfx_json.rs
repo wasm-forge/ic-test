@@ -56,8 +56,12 @@ pub fn get_gen_candid_file(canister_name: &str, canister: &DfxCanister) -> Optio
 }
 
 // gather canister information from dfx.json
-pub fn parse_dfx_json(setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    let json_string = fs::read_to_string(&setup.dfx_json)?;
+pub fn add_canisters(setup: &mut IcTestSetup) -> anyhow::Result<()> {
+    if setup.icp_setup.skip_dfx_json {
+        return Ok(());
+    }
+
+    let json_string = fs::read_to_string(&setup.icp_setup.dfx_json)?;
 
     let json = from_str::<DfxJson>(&json_string)?;
 
@@ -82,47 +86,11 @@ pub fn parse_dfx_json(setup: &mut IcTestSetup) -> anyhow::Result<()> {
 
             // store new canister setup
             let _ = setup
+                .icp_setup
                 .canisters
                 .insert(canister_name.clone(), canister_setup);
         }
     }
-
-    Ok(())
-}
-
-// gather contract information from forge.toml
-pub fn parse_forge_toml(setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    /*
-        let json_string = fs::read_to_string(&setup.dfx_json)?;
-
-        let json = from_str::<DfxJson>(&json_string)?;
-
-        if let Some(canisters) = &json.canisters {
-            for (canister_name, canister) in canisters {
-                // prepare canister
-                let gen_candid_file = get_gen_candid_file(canister_name, canister);
-
-                let wasm = find_wasm(canister_name, setup)?;
-
-                let mut canister_setup = CanisterSetup {
-                    name: canister_name.clone(),
-                    candid: None,
-                    wasm,
-                    gen_candid_file,
-                    specified_id: None,
-                };
-
-                if let Some(candid) = &canister.candid {
-                    canister_setup.candid = Some(candid.clone());
-                }
-
-                // store new canister setup
-                let _ = setup
-                    .canisters
-                    .insert(canister_name.clone(), canister_setup);
-            }
-        }
-    */
 
     Ok(())
 }
