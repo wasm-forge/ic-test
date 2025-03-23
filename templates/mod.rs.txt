@@ -1,20 +1,25 @@
-use alloy::sol;
+#![allow(dead_code, unused_imports, non_snake_case)]
 
+type CallMode = ic_test::CallMode;
 type Caller = ic_test::IcUser;
+type CallBuilder<R> = ic_test::CallBuilder<R, ic_test::IcUser>;
+type DeployMode = ic_test::DeployMode;
 type Deployer = ic_test::IcUser;
-type DeployerBuilder<C> = ic_test::DeployerBuilder<C, Caller>;
-
+type DeployBuilder<C> = ic_test::DeployBuilder<C, Caller>;
 {% for c in canisters %}
 // candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
 // generated from: {{ c.gen_candid_file.clone().unwrap_or("...".to_owned()) }}
-mod {{ c.canister_name }};
+pub mod {{ c.canister_name }};
 {% endfor %}
-
-{% for c in contracts %}
-sol!(
-    #[sol(rpc)]
-    {{ c.name }},
-    "{{ c.sol_json}}",
-);
-{% endfor %}
-
+{% if !contracts.is_empty() %}
+pub mod evm {
+    use alloy::sol;
+    {% for c in contracts %}
+    sol!(
+        #[sol(rpc)]
+        {{ c.name }},
+        "{{ c.sol_json}}",
+    );
+    {% endfor %}
+}
+{% endif %}

@@ -5,7 +5,6 @@ use thiserror::Error;
 use super::{
     caller::Caller,
     provider::{Provider, RejectResponse},
-    IcUser,
 };
 
 #[derive(Debug, Error)]
@@ -136,27 +135,5 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
             .map_err(DeployError::Reject)?;
 
         Ok((self.new)(&self.caller, canister_id))
-    }
-}
-
-impl Deployer for IcUser {
-    type Caller = IcUser;
-
-    fn deploy<Canister>(
-        &self,
-        args: Result<Vec<u8>, candid::error::Error>,
-        new: fn(&Self::Caller, Principal) -> Canister,
-    ) -> DeployBuilder<Canister, Self::Caller> {
-        DeployBuilder {
-            provider: self.clone(),
-            caller: self.clone(),
-            canister_id: None,
-            mode: DeployMode::Create,
-            settings: CanisterSettings::default(),
-            cycles: u64::MAX as u128,
-            wasm: vec![],
-            args,
-            new,
-        }
     }
 }

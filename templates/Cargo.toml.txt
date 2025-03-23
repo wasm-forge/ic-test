@@ -1,29 +1,16 @@
 [package]
-name = "tests"
+name = "ic-tests"
 version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-candid.workspace = true
-ic-cdk.workspace = true
-evm-rpc-canister-types.workspace = true
-serde.workspace = true
-serde_bytes.workspace = true
-serde_json.workspace = true
-ethers-core.workspace = true
-ic-evm-utils.workspace = true
-
-tokio = { version = "1", features = ["full"] }
 alloy = { version = "0.12", features = ["full"] }
-alloy-node-bindings = "0.12.0"
-reqwest = "0.12.12"
-lazy_static = "1.4.0"
-icp-ledger = { git = "https://github.com/dfinity/ic", rev = "efa77e7d1ee58e4f06c9ceebb4b0078278a3d0f7" }
-icrc-cbor = { version = "0.1.0", features = ["u256"] }
-icrc-ledger-client-cdk = { git = "https://github.com/dfinity/ic", rev = "efa77e7d1ee58e4f06c9ceebb4b0078278a3d0f7" }
-icrc-ledger-types = { git = "https://github.com/dfinity/ic.git", rev = "efa77e7d1ee58e4f06c9ceebb4b0078278a3d0f7" }
-ic-icrc1-ledger = { git = "https://github.com/dfinity/ic.git", rev = "efa77e7d1ee58e4f06c9ceebb4b0078278a3d0f7" }
-pocket-ic = "7.0.0"
+candid = "0.10"
 cargo_metadata = "0.19.1"
-ic-agent = "0.39.3"
-thiserror = "2.0.12"
+ic-cdk = "0.17.1"
+ic-test = { path = "../../ic-test" }
+lazy_static = "1.4.0"
+pocket-ic = "7.0.0"
+serde = "1.0.219"
+serde_bytes = "0.11.17"
+tokio = { version = "1", features = ["full"] }

@@ -25,37 +25,34 @@ pub fn generate(args: &IcTestArgs, _setup: &IcTestSetup) -> Result<(), Error> {
     fs::create_dir_all(&project_dir)?;
 
     // only create necessary files if they don't exist
-    let mut lib_rs = project_dir.clone();
-    lib_rs.push("src/lib.rs");
+    let mut src_dir = project_dir.clone();
+    src_dir.push("src");
+    fs::create_dir_all(&src_dir)?;
 
-    let mut tests_rs = project_dir.clone();
-    tests_rs.push("src/tests.rs");
+    let mut lib_rs = src_dir.clone();
+    lib_rs.push("lib.rs");
+
+    let mut tests_rs = src_dir.clone();
+    tests_rs.push("tests.rs");
 
     let mut cargo_toml = project_dir.clone();
     cargo_toml.push("Cargo.toml");
 
-    if !cargo_toml.exists() {
-        let template = CargoTomlTemplate {};
+    let template = CargoTomlTemplate {};
 
-        let content = template.render()?;
-        fs::write(cargo_toml, content)
-            .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
-    }
+    let content = template.render()?;
+    fs::write(cargo_toml, content)
+        .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
 
-    if !tests_rs.exists() {
-        let template = TestsRsTemplate {};
+    let template = TestsRsTemplate {};
 
-        let content = template.render()?;
-        fs::write(tests_rs, content)
-            .unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
-    }
+    let content = template.render()?;
+    fs::write(tests_rs, content).unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
 
-    if !lib_rs.exists() {
-        let template = LibRsTemplate {};
+    let template = LibRsTemplate {};
 
-        let content = template.render()?;
-        fs::write(lib_rs, content).unwrap_or_else(|_| panic!("Could not create the lib.rs file"));
-    }
+    let content = template.render()?;
+    fs::write(lib_rs, content).unwrap_or_else(|_| panic!("Could not create the lib.rs file"));
 
     Ok(())
 }

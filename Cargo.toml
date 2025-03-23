@@ -38,6 +38,7 @@ askama = "0.12.1"
 
 
 alloy = { version = "0.12", features = ["full"] }
+async-trait = "0.1.88"
 alloy-node-bindings = "0.12.0"
 lazy_static = "1.4.0"
 pocket-ic = "7.0.0"
@@ -46,3 +47,4 @@ ic-agent = "0.39.3"
 thiserror = "2.0.12"
 candid = "0.10"
 ic-cdk = "0.17.1"
+slog = "2.7.0"

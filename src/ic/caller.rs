@@ -4,10 +4,7 @@ use candid::{decode_one, CandidType, Principal};
 use serde::Deserialize;
 use thiserror::Error;
 
-use super::{
-    provider::{Provider, RejectResponse},
-    IcUser,
-};
+use super::provider::{Provider, RejectResponse};
 
 #[derive(Debug, Error)]
 pub enum CallError {
@@ -78,29 +75,5 @@ impl<R: for<'a> Deserialize<'a> + CandidType, P: Provider> CallBuilder<R, P> {
         let reply = result.map_err(CallError::Reject)?;
 
         decode_one(&reply).map_err(CallError::ResultDecoding)
-    }
-}
-
-impl Caller for IcUser {
-    type Provider = IcUser;
-
-    fn call<ResultType>(
-        &self,
-        canister_id: Principal,
-        call_mode: CallMode,
-        method: &str,
-        args: Result<Vec<u8>, candid::error::Error>,
-    ) -> CallBuilder<ResultType, Self::Provider>
-    where
-        ResultType: for<'a> Deserialize<'a> + CandidType,
-    {
-        CallBuilder {
-            provider: self.clone(),
-            canister_id,
-            call_mode,
-            method: method.to_string(),
-            args,
-            _result: PhantomData,
-        }
     }
 }

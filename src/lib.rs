@@ -12,7 +12,8 @@ pub use crate::{
     evm::{Evm, EvmUser},
     ic::caller::{CallBuilder, CallError, CallMode, Caller},
     ic::deployer::{DeployBuilder, DeployError, DeployMode, Deployer},
-    ic::{Ic, IcUser},
+    ic::user::IcUser,
+    ic::Ic,
 };
 
 pub struct IcTest {
@@ -30,10 +31,15 @@ impl IcTest {
         let pic = Arc::downgrade(&result.ic.pic);
         task::spawn(handle_http_outcalls(
             pic,
-            result.evm.rpc_url.clone(),
-            vec![result.evm.rpc_url.to_string()],
+            result.evm.rpc_url(),
+            vec![result.evm.rpc_url().to_string()],
         ));
         result
+    }
+
+    pub async fn tick(&self) {
+        self.ic.tick().await;
+        self.evm.mine_block().await;
     }
 }
 

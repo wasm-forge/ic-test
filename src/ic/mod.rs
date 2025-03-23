@@ -6,10 +6,12 @@ use std::{
 use candid::Principal;
 use pocket_ic::{nonblocking::PocketIc, PocketIcBuilder};
 use test_principals::TEST_PRINCIPALS;
+use user::IcUser;
 
 pub mod caller;
 pub mod deployer;
 pub mod provider;
+pub mod user;
 
 pub(crate) mod http_outcalls;
 pub(crate) mod test_principals;
@@ -20,11 +22,10 @@ pub struct Ic {
 
 impl Ic {
     pub async fn new() -> Self {
-        std::env::set_var("RUST_LOG", "error");
-
         let pic = PocketIcBuilder::new()
             .with_nns_subnet()
             .with_ii_subnet()
+            .with_log_level(slog::Level::Error)
             .build_async()
             .await;
 
@@ -71,10 +72,4 @@ impl Ic {
     pub fn pocket_ic(&self) -> &PocketIc {
         &self.pic
     }
-}
-
-#[derive(Clone)]
-pub struct IcUser {
-    pub principal: Principal,
-    pic: Arc<PocketIc>,
 }
