@@ -56,7 +56,7 @@ impl<R: for<'a> Deserialize<'a> + CandidType, P: Provider> CallBuilder<R, P> {
         }
     }
 
-    pub async fn call(self) -> Result<R, CallError> {
+    pub async fn maybe_call(self) -> Result<R, CallError> {
         let args = self.args.map_err(CallError::ArgumentEncoding)?;
 
         let result = match self.call_mode {
@@ -75,5 +75,9 @@ impl<R: for<'a> Deserialize<'a> + CandidType, P: Provider> CallBuilder<R, P> {
         let reply = result.map_err(CallError::Reject)?;
 
         decode_one(&reply).map_err(CallError::ResultDecoding)
+    }
+
+    pub async fn call(self) -> R {
+        self.maybe_call().await.unwrap()
     }
 }

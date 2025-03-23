@@ -101,7 +101,7 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
         }
     }
 
-    pub async fn call(self) -> Result<Canister, DeployError> {
+    pub async fn maybe_call(self) -> Result<Canister, DeployError> {
         let args = self.args.map_err(DeployError::ArgumentEncoding)?;
 
         let canister_id = if let DeployMode::Create = self.mode {
@@ -135,5 +135,9 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
             .map_err(DeployError::Reject)?;
 
         Ok((self.new)(&self.caller, canister_id))
+    }
+
+    pub async fn call(self) -> Canister {
+        self.maybe_call().await.unwrap()
     }
 }
