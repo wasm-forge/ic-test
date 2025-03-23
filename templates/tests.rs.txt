@@ -71,8 +71,7 @@ async fn setup(test: IcTest) -> Env {
     .with_wasm(wasm_gz("evm_rpc"))
     .with_canister_id(Principal::from_text("7hfb6-caaaa-aaaar-qadga-cai").unwrap())
     .call()
-    .await
-    .unwrap();
+    .await;
 
     let chain_fusion = chain_fusion::deploy(
         &icp_user,
@@ -93,28 +92,14 @@ async fn setup(test: IcTest) -> Env {
     )
     .with_wasm(wasm("chain_fusion"))
     .call()
-    .await
-    .unwrap();
+    .await;
 
-    while chain_fusion
-        .get_evm_address()
-        .call()
-        .await
-        .unwrap()
-        .is_none()
-    {
+    while chain_fusion.get_evm_address().call().await.is_none() {
         test.tick().await;
     }
 
-    let canister_evm_address = Address::from_hex(
-        chain_fusion
-            .get_evm_address()
-            .call()
-            .await
-            .unwrap()
-            .unwrap(),
-    )
-    .unwrap();
+    let canister_evm_address =
+        Address::from_hex(chain_fusion.get_evm_address().call().await.unwrap()).unwrap();
 
     let receipt = coprocessor
         .updateCoprocessor(canister_evm_address)
