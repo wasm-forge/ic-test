@@ -1,11 +1,4 @@
-use clap::{Parser, Subcommand, ValueEnum};
-
-#[derive(Clone, Debug, ValueEnum)]
-pub enum IcTestCommand {
-    Init,
-    Update,
-    Add,
-}
+use clap::{Parser, Subcommand};
 
 #[derive(Subcommand, Debug)]
 pub enum AddCommand {
@@ -29,11 +22,14 @@ pub enum AddCommand {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    /// Initialize something
-    Init {},
-    /// Update something
+    // Initialize a new test project
+    New {
+        #[arg(default_value_t = String::from("tests"))]
+        test_folder: String,
+    },
+    // Update the existing test project
     Update {},
-    /// Add canister or contract
+    // Add canister or contract
     Add {
         /// Choose what you want to add
         #[command(subcommand)]
@@ -44,10 +40,10 @@ pub enum Command {
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
 pub struct IcTestArgs {
-    /// Choose which action you want to perform
+    // Choose which action you want to perform
     #[command(subcommand)]
     pub command: Command,
-    /// Path to ic-test.json file
+    // Path to ic-test.json file
     #[arg(long, default_value_t = String::from("ic-test.json"))]
     pub ic_test_json: String,
 
@@ -58,8 +54,4 @@ pub struct IcTestArgs {
     // Do not use forge.toml to gather information on the available contracts
     #[arg(long)]
     pub skip_forge_toml: Option<bool>,
-
-    /// The test project folder
-    #[arg(long)]
-    pub test_folder: Option<String>,
 }

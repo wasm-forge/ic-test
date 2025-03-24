@@ -12,57 +12,50 @@ use std::{path::Path, process::Command};
 use arguments::IcTestArgs;
 use clap::Parser;
 use common::get_main_project_dir;
-use dfx_json::add_canisters;
-use foundry_toml::{add_contract, add_contracts};
-use git2::{Repository, StatusOptions};
+use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcTestSetup};
 
-fn has_uncommitted_changes(repo_path: &str) -> Result<bool, git2::Error> {
+fn has_uncommitted_changes(repo_path: &str, setup: &IcTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
         Ok(r) => r,
         Err(_) => return Ok(false),
     };
 
-    let mut opts = StatusOptions::new();
-    opts.include_untracked(true)
-        .renames_head_to_index(true)
-        .renames_index_to_workdir(true);
+    let statuses = repo.statuses(Some(
+        StatusOptions::new()
+            .include_untracked(true)
+            .renames_head_to_index(true)
+            .renames_index_to_workdir(true),
+    ))?;
 
-    let statuses = repo.statuses(Some(&mut opts))?;
-    Ok(!statuses.is_empty())
-}
+    let test_folder = format!(
+        "{}/",
+        Path::new(&setup.test_folder)
+            .to_string_lossy()
+            .to_string()
+            .trim_end_matches('/')
+    );
 
-fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
-    add_canisters(setup)?;
-
-    add_contracts(setup)?;
-
-    match &args.command {
-        arguments::Command::Init {} => {}
-        arguments::Command::Update {} => {}
-        arguments::Command::Add { command } => {
-            // either add a canister or a contract to the setup
-            match command {
-                arguments::AddCommand::Canister { name, wasm: _ } => {
-                    println!("Adding canister {name}");
-                    // TODO: add canister
-                }
-                arguments::AddCommand::Contract { name, sol_json } => {
-                    println!("Adding contract {name}");
-                    add_contract(name, sol_json, setup)?;
-                }
+    for entry in statuses.iter() {
+        if let Some(path) = entry.path() {
+            if (path == "Cargo.toml" || path.starts_with(&test_folder))
+                && entry.status() != Status::CURRENT
+            {
+                return Ok(true);
             }
         }
     }
 
-    ///////////////////////////////////
-    // Generate / regenerate folders
-    let ic_test_json = Path::new(&args.ic_test_json);
-    let test_folder = Path::new(&setup.test_folder);
+    Ok(false)
+}
+
+fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
+    // Generate files based on the setup prepared
 
     match &args.command {
-        arguments::Command::Init {} => {
+        arguments::Command::New { test_folder: _ } => {
             // we do not initialize if the tests folder exists already
+            let test_folder = Path::new(&setup.test_folder);
 
             if test_folder.exists() {
                 return Err(anyhow::anyhow!(
@@ -70,16 +63,17 @@ fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Resu
                 ));
             }
 
+            let ic_test_json = Path::new(&args.ic_test_json);
             if ic_test_json.exists() {
                 return Err(anyhow::anyhow!(
-                    "The 'ic-test.json' was initialized already, use the 'update' command instead."
+                    "The 'ic-test.json' was initialized already, use the 'ic-test update' command instead."
                 ));
             }
 
             let root = get_main_project_dir()?.to_string_lossy().to_string();
-            if has_uncommitted_changes(&root)? {
+            if has_uncommitted_changes(&root, setup)? {
                 return Err(anyhow::anyhow!(
-                    "Commit/reject any changes before calling 'ic-test init' to avoid data loss."
+                    "Commit/reject any changes before calling 'ic-test new' to avoid data loss."
                 ));
             }
 
@@ -91,18 +85,22 @@ fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Resu
                 .status()?;
         }
         arguments::Command::Update {} => {
+            let test_folder = Path::new(&setup.test_folder);
+
+            let ic_test_json = Path::new(&args.ic_test_json);
+
             // we want to avoid update if the ic-test.json is missing
             // (hence, we don't know if we can just regenerate on top of the test folder)
             if !ic_test_json.exists() {
                 return Err(anyhow::anyhow!(
-                    "The test ic-test was not initialized, use the 'init' command instead."
+                    "The test ic-test.json was not initialized yet, use the 'new' command instead."
                 ));
             }
 
             // the test folder must exist already
-            if test_folder.exists() {
+            if !test_folder.exists() {
                 return Err(anyhow::anyhow!(
-                    format!("The test directory {} does not exist in the project, use the 'init' command instead.", test_folder.to_string_lossy().to_string())
+                    format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy().to_string())
                 ));
             }
         }

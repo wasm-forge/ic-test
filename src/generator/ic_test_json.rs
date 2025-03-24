@@ -4,6 +4,12 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
+use crate::{
+    arguments,
+    dfx_json::add_canisters,
+    foundry_toml::{add_contract, add_contracts},
+};
+
 use super::arguments::IcTestArgs;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -116,8 +122,29 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
         setup.evm_setup.skip_foundry_toml = skip;
     }
 
-    if let Some(test_folder) = &args.test_folder {
-        setup.test_folder = test_folder.clone();
+    // Do setup initializations
+    add_canisters(&mut setup)?;
+
+    add_contracts(&mut setup)?;
+
+    match &args.command {
+        arguments::Command::New { test_folder } => {
+            setup.test_folder = test_folder.clone();
+        }
+        arguments::Command::Update {} => {}
+        arguments::Command::Add { command } => {
+            // either add a canister or a contract to the setup
+            match command {
+                arguments::AddCommand::Canister { name, wasm: _ } => {
+                    println!("Adding canister {name}");
+                    // TODO: add canister
+                }
+                arguments::AddCommand::Contract { name, sol_json } => {
+                    println!("Adding contract {name}");
+                    add_contract(name, sol_json, &mut setup)?;
+                }
+            }
+        }
     }
 
     Ok(setup)
