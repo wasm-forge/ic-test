@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::Error;
+use candid::Principal;
 use ic_cdk_bindgen::code_generator;
 
 use crate::{
@@ -44,6 +45,16 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
 
             config.set_target(code_generator::Target::Builder);
             config.set_service_name(format!("{}Canister", canister.name));
+            if let Some(specified_id) = canister.specified_id.clone() {
+                config.set_canister_id(Principal::from_text(&specified_id).unwrap());
+            }
+
+            let mut path = PathBuf::new();
+            path.push(canister.wasm.clone());
+
+            let path = get_path_relative_to_test_dir(path.as_path(), setup)?;
+
+            config.set_canister_wasm_path(path.to_string_lossy().to_string());
 
             let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
 

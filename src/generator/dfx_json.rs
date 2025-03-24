@@ -84,6 +84,8 @@ pub fn add_canisters(setup: &mut IcTestSetup) -> anyhow::Result<()> {
                 canister_setup.candid = Some(candid.clone());
             }
 
+            canister_setup.specified_id = canister.specified_id.clone();
+
             // store new canister setup
             let _ = setup
                 .icp_setup
