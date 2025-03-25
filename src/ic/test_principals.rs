@@ -2,11 +2,11 @@
 /// Do not use them in production.
 ///
 /// Each item was generated using dfx as follows:
-/// ```
+///
 /// dfx identity new ic-test-$1 2> /dev/null
 /// dfx identity use ic-test-$1 2>/dev/null
 /// dfx identity get-principal
-/// ```
+///
 pub const TEST_PRINCIPALS: [&str; 100] = [
     "thpo3-q4lh3-e2l7b-av6au-agkwy-rxz46-us566-tttzq-zkux2-3w5nt-pae",
     "rdhlt-zjpao-gw2bm-q7lqo-ak6fx-2ph33-lptwg-pkmi4-wqiej-22ypv-oqe",

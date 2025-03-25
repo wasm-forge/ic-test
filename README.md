@@ -20,14 +20,11 @@ ic-test will:
 
 ## Installation
 
-Because **ic-test** is still under early development, you need to build it yourself. You will need both the `ic-test` source code and a modified version of `cdk-rs`:
+You can install the tool via Cargo:
 
 ```bash
-git clone https://github.com/wasm-forge/ic-test.git
-git clone https://github.com/wasm-forge/cdk-rs.git
+cargo install ic-test
 ```
-
-Compile **ic-test**, then add it to your `PATH` or create a symbolic link so you can run it from your project folder.
 
 ## Tool usage
 

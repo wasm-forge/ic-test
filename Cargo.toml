@@ -24,7 +24,10 @@ env_logger = "0.11.7"
 syn = "2.0"
 quote = "1.0"
 candid_parser = "0.1.4"
-ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
+#ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
+ic-cdk-bindgen = { git = "https://github.com/wasm-forge/cdk-rs.git", rev = "1fe6f6f" }
+
+
 prettyplease = "0.2.22"
 serde_json = { version = "1.0" }
 serde = "1.0.219"
