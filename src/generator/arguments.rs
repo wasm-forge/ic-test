@@ -29,7 +29,7 @@ pub enum Command {
     },
     // Update the existing test project
     Update {},
-    // Add canister or contract
+    // Add a canister or a contract
     Add {
         /// Choose what you want to add
         #[command(subcommand)]
