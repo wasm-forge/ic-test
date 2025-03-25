@@ -7,9 +7,10 @@ use anyhow::Result;
 
 use crate::ic_test_json::IcTestSetup;
 
+pub const FOUNDRY_TOML: &str = "foundry.toml";
+
 //
 pub fn get_main_project_dir() -> Result<PathBuf> {
-    // we expect to have dfx.json in the current folder
     // TODO: check if we need to return one of the parent folders
     let cur_dir = env::current_dir()?;
     Ok(cur_dir)
@@ -70,6 +71,8 @@ pub fn find_wasm(canister_name: &str, setup: &IcTestSetup) -> Result<String> {
     for name in &names {
         let mut wasm_file = canister_dir.clone();
         wasm_file.push(name);
+
+        println!("checking canister path: {:?}", wasm_file);
 
         if wasm_file.exists() && wasm_file.is_file() {
             let relative_wasm = get_relative_path(wasm_file.as_path(), setup)?;

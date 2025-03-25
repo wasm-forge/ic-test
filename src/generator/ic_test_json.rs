@@ -51,7 +51,8 @@ pub struct IcTestSetup {
     pub icp_setup: IcpSetup,
 
     // EVM settings
-    pub evm_setup: EvmSetup,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evm_setup: Option<EvmSetup>,
 }
 
 impl Default for IcpSetup {
@@ -67,7 +68,7 @@ impl Default for IcpSetup {
 impl Default for EvmSetup {
     fn default() -> Self {
         Self {
-            foundry_toml: "foundry.toml".to_string(),
+            foundry_toml: crate::common::FOUNDRY_TOML.to_string(),
             foundry_src: "src".to_string(),
             foundry_out: "out".to_string(),
             skip_foundry_toml: false,
@@ -81,7 +82,7 @@ impl Default for IcTestSetup {
         Self {
             test_folder: "tests".to_string(),
             icp_setup: IcpSetup::default(),
-            evm_setup: EvmSetup::default(),
+            evm_setup: None,
         }
     }
 }
@@ -106,7 +107,16 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
 
     let mut setup = if !path.exists() {
         // init with default values
-        IcTestSetup::default()
+        let mut setup = IcTestSetup::default();
+
+        // we need to decide if we want to work with EVM, by default it depends on whether we can find the foundry.toml file
+        let foundry_toml = Path::new(crate::common::FOUNDRY_TOML);
+
+        if foundry_toml.exists() && foundry_toml.is_file() {
+            setup.evm_setup = Some(EvmSetup::default());
+        }
+
+        setup
     } else {
         // try opening config from the ic-test.json
         let json_string = fs::read_to_string(&args.ic_test_json)?;
@@ -118,8 +128,10 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
         setup.icp_setup.skip_dfx_json = skip;
     }
 
-    if let Some(skip) = args.skip_forge_toml {
-        setup.evm_setup.skip_foundry_toml = skip;
+    if let Some(evm_setup) = &mut setup.evm_setup {
+        if let Some(skip) = args.skip_foundry_toml {
+            evm_setup.skip_foundry_toml = skip;
+        }
     }
 
     // Do setup initializations

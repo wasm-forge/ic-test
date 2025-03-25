@@ -8,7 +8,7 @@ alloy = { version = "0.12", features = ["full"] }
 candid = "0.10"
 cargo_metadata = "0.19.1"
 ic-cdk = "0.17.1"
-ic-test = { path = "../../ic-test" }
+ic-test = { git = "https://github.com/wasm-forge/ic-test" }
 pocket-ic = "7.0.0"
 serde = "1.0.219"
 serde_bytes = "0.11.17"

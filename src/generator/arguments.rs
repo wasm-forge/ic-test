@@ -51,7 +51,7 @@ pub struct IcTestArgs {
     #[arg(long)]
     pub skip_dfx_json: Option<bool>,
 
-    // Do not use forge.toml to gather information on the available contracts
+    // Do not use foundry.toml to gather information on the available contracts
     #[arg(long)]
-    pub skip_forge_toml: Option<bool>,
+    pub skip_foundry_toml: Option<bool>,
 }

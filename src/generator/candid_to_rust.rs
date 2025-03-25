@@ -18,6 +18,12 @@ use askama::Template;
 #[template(path = "mod.rs.txt")]
 struct ModRsTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
+}
+
+#[derive(Template)]
+#[template(path = "mod.evm.rs.txt")]
+struct ModRsEvmTemplate<'a> {
+    canisters: &'a Vec<CanisterSetup>,
     contracts: &'a Vec<ContractSetup>,
 }
 
@@ -89,27 +95,37 @@ fn generate_mod_rs(setup: &IcTestSetup, bindings_path: &Path) -> Result<(), Erro
         })
         .collect();
 
-    let contracts: Vec<ContractSetup> = setup
-        .evm_setup
-        .contracts
-        .iter()
-        .map(|x| {
-            let mut x = x.1.clone();
-            let path = Path::new(&x.sol_json);
-            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
-            x.sol_json = relative.to_string_lossy().to_string();
-            x
-        })
-        .collect();
+    // are we using EVM template?
+    if let Some(evm_setup) = &setup.evm_setup {
+        let contracts: Vec<ContractSetup> = evm_setup
+            .contracts
+            .iter()
+            .map(|x| {
+                let mut x = x.1.clone();
+                let path = Path::new(&x.sol_json);
+                let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+                x.sol_json = relative.to_string_lossy().to_string();
+                x
+            })
+            .collect();
 
-    let mod_template = ModRsTemplate {
-        canisters: &canisters,
-        contracts: &contracts,
-    };
+        let mod_template = ModRsEvmTemplate {
+            canisters: &canisters,
+            contracts: &contracts,
+        };
+        let mod_content = mod_template.render()?;
 
-    let mod_content = mod_template.render()?;
+        fs::write(mod_file, mod_content)
+            .unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
+    } else {
+        let mod_template = ModRsTemplate {
+            canisters: &canisters,
+        };
+        let mod_content = mod_template.render()?;
 
-    fs::write(mod_file, mod_content).unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
+        fs::write(mod_file, mod_content)
+            .unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
+    }
 
     Ok(())
 }
