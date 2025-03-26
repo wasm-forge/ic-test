@@ -10,8 +10,12 @@ use crate::{common::get_test_project_dir, ic_test_json::IcTestSetup};
 struct LibRsTemplate {}
 
 #[derive(Template)]
-#[template(path = "tests.rs.txt")]
-struct TestsRsTemplate {}
+#[template(path = "icp/tests.rs.txt")]
+struct TestsRsIcpTemplate {}
+
+#[derive(Template)]
+#[template(path = "icp_evm/tests.rs.txt")]
+struct TestsRsIcpEvmTemplate {}
 
 #[derive(Template)]
 #[template(path = "Cargo.toml.txt")]
@@ -44,9 +48,14 @@ pub fn generate(setup: &IcTestSetup, is_update: bool) -> Result<(), Error> {
     fs::write(cargo_toml, content)
         .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
 
-    let template = TestsRsTemplate {};
+    let content = if let Some(_evm_setup) = &setup.evm_setup {
+        let template = TestsRsIcpEvmTemplate {};
+        template.render()?
+    } else {
+        let template = TestsRsIcpTemplate {};
+        template.render()?
+    };
 
-    let content = template.render()?;
     fs::write(tests_rs, content).unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
 
     let template = LibRsTemplate {};

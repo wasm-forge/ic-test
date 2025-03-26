@@ -15,14 +15,14 @@ use crate::{
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "mod.rs.txt")]
-struct ModRsTemplate<'a> {
+#[template(path = "icp/mod.rs.txt")]
+struct ModRsIcpTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
 }
 
 #[derive(Template)]
-#[template(path = "mod.evm.rs.txt")]
-struct ModRsEvmTemplate<'a> {
+#[template(path = "icp_evm/mod.rs.txt")]
+struct ModRsIcpEvmTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
     contracts: &'a Vec<ContractSetup>,
 }
@@ -109,18 +109,20 @@ fn generate_mod_rs(setup: &IcTestSetup, bindings_path: &Path) -> Result<(), Erro
             })
             .collect();
 
-        let mod_template = ModRsEvmTemplate {
+        let mod_template = ModRsIcpEvmTemplate {
             canisters: &canisters,
             contracts: &contracts,
         };
+
         let mod_content = mod_template.render()?;
 
         fs::write(mod_file, mod_content)
             .unwrap_or_else(|_| panic!("Could not create the mod.rs file"));
     } else {
-        let mod_template = ModRsTemplate {
+        let mod_template = ModRsIcpTemplate {
             canisters: &canisters,
         };
+
         let mod_content = mod_template.render()?;
 
         fs::write(mod_file, mod_content)

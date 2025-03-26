@@ -1,0 +1,23 @@
+use std::path::PathBuf;
+
+use candid::Principal;
+use ic_test::{IcTest, IcUser};
+
+struct Env {
+    test: IcTest,
+}
+
+async fn setup(test: IcTest) -> Env {
+    let icp_user = test.ic.test_user(0);
+
+    Env { test }
+}
+
+#[tokio::test]
+async fn test_() {
+    let Env { test } = setup(IcTest::new().await).await;
+
+    for _ in 0..100 {
+        test.ic.tick().await;
+    }
+}
