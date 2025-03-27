@@ -8,12 +8,12 @@ use serde::Deserialize;
 use crate::{CallBuilder, CallMode, Caller, DeployBuilder, DeployMode, Deployer};
 
 #[derive(Clone)]
-pub struct IcUser {
+pub struct IcpUser {
     pub principal: Principal,
     pub(crate) pic: Arc<PocketIc>,
 }
 
-impl IcUser {
+impl IcpUser {
     pub fn call<ResultType>(
         &self,
         canister_id: Principal,
@@ -53,8 +53,8 @@ impl IcUser {
     }
 }
 
-impl Caller for IcUser {
-    type Provider = IcUser;
+impl Caller for IcpUser {
+    type Provider = IcpUser;
 
     fn call<ResultType>(
         &self,
@@ -66,18 +66,18 @@ impl Caller for IcUser {
     where
         ResultType: for<'a> Deserialize<'a> + CandidType,
     {
-        IcUser::call(self, canister_id, call_mode, method, args)
+        IcpUser::call(self, canister_id, call_mode, method, args)
     }
 }
 
-impl Deployer for IcUser {
-    type Caller = IcUser;
+impl Deployer for IcpUser {
+    type Caller = IcpUser;
 
     fn deploy<Canister>(
         &self,
         args: Result<Vec<u8>, candid::error::Error>,
         new: fn(&Self::Caller, Principal) -> Canister,
     ) -> DeployBuilder<Canister, Self::Caller> {
-        IcUser::deploy(self, args, new)
+        IcpUser::deploy(self, args, new)
     }
 }

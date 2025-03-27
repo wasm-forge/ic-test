@@ -9,7 +9,7 @@ use ic_cdk_bindgen::code_generator;
 
 use crate::{
     common::get_path_relative_to_test_dir,
-    ic_test_json::{CanisterSetup, ContractSetup, IcTestSetup},
+    ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
 
 use askama::Template;
@@ -27,7 +27,7 @@ struct ModRsIcpEvmTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
+pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
     // current folder
     let mut bindings_path = env::current_dir()?;
     bindings_path.push(setup.test_folder.clone());
@@ -78,7 +78,7 @@ pub fn generate(setup: &IcTestSetup) -> Result<(), Error> {
     Ok(())
 }
 
-fn generate_mod_rs(setup: &IcTestSetup, bindings_path: &Path) -> Result<(), Error> {
+fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Error> {
     let mut mod_file: PathBuf = bindings_path.to_path_buf();
     mod_file.push("mod.rs");
 

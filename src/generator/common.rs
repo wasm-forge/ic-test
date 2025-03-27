@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Result;
 
-use crate::ic_test_json::IcTestSetup;
+use crate::ic_test_json::IcpTestSetup;
 
 pub const FOUNDRY_TOML: &str = "foundry.toml";
 
@@ -17,7 +17,7 @@ pub fn get_main_project_dir() -> Result<PathBuf> {
 }
 
 //
-pub fn get_test_project_dir(setup: &IcTestSetup) -> Result<PathBuf> {
+pub fn get_test_project_dir(setup: &IcpTestSetup) -> Result<PathBuf> {
     // TODO: check if we need to return one of the parent folders
     let mut cur_dir = env::current_dir()?;
     cur_dir.push(setup.test_folder.clone());
@@ -25,7 +25,7 @@ pub fn get_test_project_dir(setup: &IcTestSetup) -> Result<PathBuf> {
 }
 
 // get path relative to the main project
-pub fn get_relative_path(target_path: &Path, setup: &IcTestSetup) -> Result<PathBuf> {
+pub fn get_relative_path(target_path: &Path, setup: &IcpTestSetup) -> Result<PathBuf> {
     let _ = setup;
     let mut ret = PathBuf::new();
 
@@ -42,7 +42,7 @@ pub fn get_relative_path(target_path: &Path, setup: &IcTestSetup) -> Result<Path
 }
 
 // path prefix to get from the test folder to the target path
-pub fn get_path_relative_to_test_dir(target_path: &Path, setup: &IcTestSetup) -> Result<PathBuf> {
+pub fn get_path_relative_to_test_dir(target_path: &Path, setup: &IcpTestSetup) -> Result<PathBuf> {
     let mut ret = PathBuf::new();
 
     // for each test path part add ".."
@@ -58,7 +58,7 @@ pub fn get_path_relative_to_test_dir(target_path: &Path, setup: &IcTestSetup) ->
 }
 
 // try find wasm for a given canister name
-pub fn find_wasm(canister_name: &str, setup: &IcTestSetup) -> Result<String> {
+pub fn find_wasm(canister_name: &str, setup: &IcpTestSetup) -> Result<String> {
     let mut canister_dir = get_main_project_dir()?;
 
     canister_dir.push(format!(".dfx/local/canisters/{canister_name}"));

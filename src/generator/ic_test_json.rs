@@ -10,7 +10,7 @@ use crate::{
     foundry_toml::{add_contract, add_contracts},
 };
 
-use super::arguments::IcTestArgs;
+use super::arguments::IcpTestArgs;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EvmSetup {
@@ -43,7 +43,7 @@ pub struct IcpSetup {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct IcTestSetup {
+pub struct IcpTestSetup {
     // Tests folder: the workspace project for generating tests and bindings
     pub test_folder: String,
 
@@ -77,7 +77,7 @@ impl Default for EvmSetup {
     }
 }
 
-impl Default for IcTestSetup {
+impl Default for IcpTestSetup {
     fn default() -> Self {
         Self {
             test_folder: "tests".to_string(),
@@ -102,12 +102,12 @@ pub struct ContractSetup {
     pub sol_json: String,
 }
 
-pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
+pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
     let path = Path::new(&args.ic_test_json);
 
     let mut setup = if !path.exists() {
         // init with default values
-        let mut setup = IcTestSetup::default();
+        let mut setup = IcpTestSetup::default();
 
         // we need to decide if we want to work with EVM, by default it depends on whether we can find the foundry.toml file
         let foundry_toml = Path::new(crate::common::FOUNDRY_TOML);
@@ -121,7 +121,7 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
         // try opening config from the ic-test.json
         let json_string = fs::read_to_string(&args.ic_test_json)?;
 
-        from_str::<IcTestSetup>(&json_string)?
+        from_str::<IcpTestSetup>(&json_string)?
     };
 
     if let Some(skip) = args.skip_dfx_json {
@@ -162,7 +162,7 @@ pub fn init_test_config(args: &IcTestArgs) -> anyhow::Result<IcTestSetup> {
     Ok(setup)
 }
 
-pub fn store_test_config(args: &IcTestArgs, setup: &IcTestSetup) -> anyhow::Result<()> {
+pub fn store_test_config(args: &IcpTestArgs, setup: &IcpTestSetup) -> anyhow::Result<()> {
     let to_store = serde_json::to_string_pretty(&setup)?;
 
     fs::write(&args.ic_test_json, to_store)?;

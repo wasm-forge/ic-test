@@ -9,13 +9,13 @@ mod test_structure;
 
 use std::{path::Path, process::Command};
 
-use arguments::IcTestArgs;
+use arguments::IcpTestArgs;
 use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
-use ic_test_json::{init_test_config, store_test_config, IcTestSetup};
+use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
 
-fn has_uncommitted_changes(repo_path: &str, setup: &IcTestSetup) -> Result<bool, git2::Error> {
+fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
         Ok(r) => r,
         Err(_) => return Ok(false),
@@ -49,7 +49,7 @@ fn has_uncommitted_changes(repo_path: &str, setup: &IcTestSetup) -> Result<bool,
     Ok(false)
 }
 
-fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Result<()> {
+fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     // Generate files based on the setup prepared
 
     match &args.command {
@@ -118,7 +118,7 @@ fn process_arguments(args: &IcTestArgs, setup: &mut IcTestSetup) -> anyhow::Resu
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
-    let args = IcTestArgs::try_parse()?;
+    let args = IcpTestArgs::try_parse()?;
 
     let mut setup = init_test_config(&args)?;
 

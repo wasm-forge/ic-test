@@ -6,7 +6,7 @@ use std::{
 use candid::Principal;
 use pocket_ic::{nonblocking::PocketIc, PocketIcBuilder};
 use test_principals::TEST_PRINCIPALS;
-use user::IcUser;
+use user::IcpUser;
 
 pub mod caller;
 pub mod deployer;
@@ -16,11 +16,11 @@ pub mod user;
 pub(crate) mod http_outcalls;
 pub(crate) mod test_principals;
 
-pub struct Ic {
+pub struct Icp {
     pub pic: Arc<PocketIc>,
 }
 
-impl Ic {
+impl Icp {
     pub async fn new() -> Self {
         let pic = PocketIcBuilder::new()
             .with_nns_subnet()
@@ -43,7 +43,7 @@ impl Ic {
         TEST_PRINCIPALS.len()
     }
 
-    pub fn test_user(&self, index: usize) -> IcUser {
+    pub fn test_user(&self, index: usize) -> IcpUser {
         if index >= self.test_user_count() {
             panic!(
                 "Reached maximum number of test users: {}",
@@ -53,12 +53,12 @@ impl Ic {
         self.user_from(Principal::from_text(TEST_PRINCIPALS[index]).unwrap())
     }
 
-    pub fn default_user(&self) -> IcUser {
+    pub fn default_user(&self) -> IcpUser {
         self.test_user(0)
     }
 
-    pub fn user_from(&self, principal: Principal) -> IcUser {
-        IcUser {
+    pub fn user_from(&self, principal: Principal) -> IcpUser {
+        IcpUser {
             principal,
             pic: Arc::clone(&self.pic),
         }

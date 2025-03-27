@@ -5,7 +5,7 @@ use serde_json::from_str;
 
 use crate::{
     common::find_wasm,
-    ic_test_json::{CanisterSetup, IcTestSetup},
+    ic_test_json::{CanisterSetup, IcpTestSetup},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,7 +56,7 @@ pub fn get_gen_candid_file(canister_name: &str, canister: &DfxCanister) -> Optio
 }
 
 // gather canister information from dfx.json
-pub fn add_canisters(setup: &mut IcTestSetup) -> anyhow::Result<()> {
+pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if setup.icp_setup.skip_dfx_json {
         return Ok(());
     }

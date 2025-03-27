@@ -5,7 +5,7 @@ use std::{
 
 use toml_edit::DocumentMut;
 
-use crate::ic_test_json::{ContractSetup, IcTestSetup};
+use crate::ic_test_json::{ContractSetup, IcpTestSetup};
 
 fn get_toml_src(doc: &DocumentMut) -> Option<String> {
     doc.get("profile")?
@@ -26,7 +26,7 @@ fn get_toml_out(doc: &DocumentMut) -> Option<String> {
 pub fn add_contract(
     contract_name: &str,
     sol_json: &Option<String>,
-    setup: &mut IcTestSetup,
+    setup: &mut IcpTestSetup,
 ) -> anyhow::Result<()> {
     if let Some(evm_setup) = &mut setup.evm_setup {
         let mut json = PathBuf::new();
@@ -57,7 +57,7 @@ pub fn add_contract(
 }
 
 // gather contract information from foundry.toml
-pub fn add_contracts(setup: &mut IcTestSetup) -> anyhow::Result<()> {
+pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if let Some(evm_setup) = &mut setup.evm_setup {
         if !evm_setup.skip_foundry_toml {
             use toml_edit::DocumentMut;

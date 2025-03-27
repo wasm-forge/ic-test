@@ -3,7 +3,7 @@ pub use pocket_ic::{ErrorCode, RejectCode, RejectResponse};
 
 use crate::convert;
 
-use super::IcUser;
+use super::IcpUser;
 
 #[allow(async_fn_in_trait)]
 pub trait Provider {
@@ -42,7 +42,7 @@ pub trait Provider {
     ) -> Result<Vec<u8>, RejectResponse>;
 }
 
-impl Provider for IcUser {
+impl Provider for IcpUser {
     async fn create_canister(
         &self,
         settings: CanisterSettings,

@@ -1,34 +1,34 @@
 use std::sync::Arc;
 
 use candid::{decode_one, encode_one, CandidType};
-use ic::http_outcalls::handle_http_outcalls;
+use icp::http_outcalls::handle_http_outcalls;
 use serde::Deserialize;
 use tokio::task;
 
 mod evm;
-mod ic;
+mod icp;
 
 pub use crate::{
     evm::{Evm, EvmUser},
-    ic::caller::{CallBuilder, CallError, CallMode, Caller},
-    ic::deployer::{DeployBuilder, DeployError, DeployMode, Deployer},
-    ic::user::IcUser,
-    ic::Ic,
+    icp::caller::{CallBuilder, CallError, CallMode, Caller},
+    icp::deployer::{DeployBuilder, DeployError, DeployMode, Deployer},
+    icp::user::IcpUser,
+    icp::Icp,
 };
 
-pub struct IcTest {
-    pub ic: Ic,
+pub struct IcpTest {
+    pub icp: Icp,
     pub evm: Evm,
 }
 
-impl IcTest {
+impl IcpTest {
     pub async fn new() -> Self {
         let result = Self {
-            ic: Ic::new().await,
+            icp: Icp::new().await,
             evm: Evm::new(),
         };
 
-        let pic = Arc::downgrade(&result.ic.pic);
+        let pic = Arc::downgrade(&result.icp.pic);
         task::spawn(handle_http_outcalls(
             pic,
             result.evm.rpc_url(),
@@ -38,7 +38,7 @@ impl IcTest {
     }
 
     pub async fn tick(&self) {
-        self.ic.tick().await;
+        self.icp.tick().await;
         self.evm.mine_block().await;
     }
 }

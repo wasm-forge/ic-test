@@ -39,7 +39,7 @@ pub enum Command {
 
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
-pub struct IcTestArgs {
+pub struct IcpTestArgs {
     // Choose which action you want to perform
     #[command(subcommand)]
     pub command: Command,
