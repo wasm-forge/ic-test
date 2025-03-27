@@ -23,7 +23,7 @@ struct Env {
 
 async fn setup(test: IcpTest) -> Env {
     let evm_user = test.evm.test_user(0);
-    let icp_user = test.ic.test_user(0);
+    let icp_user = test.icp.test_user(0);
 
     let coprocessor = Coprocessor::deploy(evm_user.clone()).await.unwrap();
 
@@ -126,7 +126,7 @@ async fn test_coprocessor_job() {
     assert!(user_balance_before - payment >= user_balance_after);
 
     for _ in 0..100 {
-        test.ic.tick().await;
+        test.icp.tick().await;
     }
 
     let result = coprocessor.getResult(Uint::from(0)).call().await.unwrap();
