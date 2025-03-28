@@ -39,9 +39,9 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
 
     // generate candid files for each canister
     for (_canister_name, canister) in setup.icp_setup.canisters.iter() {
-        if let Some(gen_candid_file) = &canister.gen_candid_file {
+        if let Some(candid) = &canister.candid {
             // read candid
-            let candid_path = Path::new(&gen_candid_file);
+            let candid_path = Path::new(&candid);
 
             let mut canister_file = bindings_path.clone();
             canister_file.push(format!("{}.rs", &canister.name));

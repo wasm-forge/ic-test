@@ -9,6 +9,7 @@ struct Env {
 
 async fn setup(test: IcpTest) -> Env {
     let icp_user = test.icp.test_user(0);
+    // ...
 
     Env { test }
 }
@@ -17,7 +18,12 @@ async fn setup(test: IcpTest) -> Env {
 async fn test_() {
     let Env { test } = setup(IcpTest::new().await).await;
 
+    // ...
+
+
     for _ in 0..100 {
         test.icp.tick().await;
     }
+
+    // ..
 }

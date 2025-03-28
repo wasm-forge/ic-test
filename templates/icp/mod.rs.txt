@@ -11,7 +11,6 @@ type DeployBuilder<C> = ic_test::DeployBuilder<C, Caller>;
 
 {% for c in canisters %}
 // candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
-// generated from: {{ c.gen_candid_file.clone().unwrap_or("...".to_owned()) }}
 pub mod {{ c.name }};
 {% endfor %}
 

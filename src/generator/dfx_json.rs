@@ -33,7 +33,7 @@ pub struct DfxCanister {
     pub specified_id: Option<String>,
 }
 
-pub fn get_gen_candid_file(canister_name: &str, canister: &DfxCanister) -> Option<String> {
+pub fn find_candid(canister_name: &str, canister: &DfxCanister) -> Option<String> {
     // 1. try finding the local file
     if let Some(candid) = &canister.candid {
         let cached_did_path = Path::new(&candid);
@@ -68,15 +68,14 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
             // prepare canister
-            let gen_candid_file = get_gen_candid_file(canister_name, canister);
+            let candid = find_candid(canister_name, canister);
 
             let wasm = find_wasm(canister_name, setup)?;
 
             let mut canister_setup = CanisterSetup {
                 name: canister_name.clone(),
-                candid: None,
+                candid,
                 wasm,
-                gen_candid_file,
                 specified_id: None,
             };
 

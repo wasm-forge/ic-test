@@ -91,7 +91,6 @@ impl Default for IcpTestSetup {
 pub struct CanisterSetup {
     pub name: String,
     pub candid: Option<String>,
-    pub gen_candid_file: Option<String>, // the candid file used in generator
     pub wasm: String,
     pub specified_id: Option<String>,
 }
