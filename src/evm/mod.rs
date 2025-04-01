@@ -43,32 +43,7 @@ pub struct Evm {
 
 impl Evm {
     pub fn new() -> Self {
-        let mut anvil = Anvil::new().keep_stdout().try_spawn().unwrap();
-        let anvil_stdout = anvil.child_mut().stdout.take();
-
-        tokio::spawn(async {
-            let mut buf = [0_u8; 4096];
-            let mut mv = anvil_stdout;
-            loop {
-                tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-                match mv.as_mut().unwrap().read(&mut buf) {
-                    Ok(len) => {
-                        eprintln!(
-                            "{}",
-                            String::from_utf8(buf[0..len].to_vec()).unwrap_or_default()
-                        );
-                    }
-                    Err(_) => return,
-                }
-            }
-        });
-
-        let anvil_url: Url = anvil.endpoint().parse().unwrap();
-        Self {
-            rpc_url: anvil_url,
-            anvil,
-            users: Mutex::new(BTreeMap::new()),
-        }
+        Evm::default()
     }
 
     pub fn rpc_url(&self) -> Url {
@@ -150,6 +125,37 @@ impl Evm {
             .await
             .unwrap();
         assert_eq!(response, "0x0");
+    }
+}
+
+impl Default for Evm {
+    fn default() -> Self {
+        let mut anvil = Anvil::new().keep_stdout().try_spawn().unwrap();
+        let anvil_stdout = anvil.child_mut().stdout.take();
+
+        tokio::spawn(async {
+            let mut buf = [0_u8; 4096];
+            let mut mv = anvil_stdout;
+            loop {
+                tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+                match mv.as_mut().unwrap().read(&mut buf) {
+                    Ok(len) => {
+                        eprintln!(
+                            "{}",
+                            String::from_utf8(buf[0..len].to_vec()).unwrap_or_default()
+                        );
+                    }
+                    Err(_) => return,
+                }
+            }
+        });
+
+        let anvil_url: Url = anvil.endpoint().parse().unwrap();
+        Self {
+            rpc_url: anvil_url,
+            anvil,
+            users: Mutex::new(BTreeMap::new()),
+        }
     }
 }
 

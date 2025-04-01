@@ -9,16 +9,16 @@ use ic_test::{EvmUser, IcpTest, IcpUser};
 
 use crate::bindings::{
     chain_fusion::{self, ChainFusionCanister},
-    evm::Coprocessor::{self, CoprocessorInstance},
     evm_rpc::{self, EvmRpcCanister},
+    evm::Coprocessor::{self, CoprocessorInstance},
 };
 
 struct Env {
     test: IcpTest,
-    evm_user: EvmUser,
     chain_fusion: ChainFusionCanister,
     evm_rpc: EvmRpcCanister,
     coprocessor: CoprocessorInstance<(), EvmUser>,
+    evm_user: EvmUser,
 }
 
 async fn setup(test: IcpTest) -> Env {

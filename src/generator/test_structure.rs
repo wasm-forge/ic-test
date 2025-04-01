@@ -1,9 +1,12 @@
-use std::fs;
+use std::{fs, path::Path};
 
 use anyhow::Error;
 use askama::Template;
 
-use crate::{common::get_test_project_dir, ic_test_json::IcpTestSetup};
+use crate::{
+    common::{get_path_relative_to_test_dir, get_test_project_dir},
+    ic_test_json::{CanisterSetup, IcpTestSetup},
+};
 
 #[derive(Template)]
 #[template(path = "lib.rs.txt")]
@@ -11,7 +14,9 @@ struct LibRsTemplate {}
 
 #[derive(Template)]
 #[template(path = "icp/tests.rs.txt")]
-struct TestsRsIcpTemplate {}
+struct TestsRsIcpTemplate<'a> {
+    canisters: &'a Vec<CanisterSetup>,
+}
 
 #[derive(Template)]
 #[template(path = "icp_evm/tests.rs.txt")]
@@ -48,11 +53,26 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
     fs::write(cargo_toml, content)
         .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
 
+    let canisters: Vec<CanisterSetup> = setup
+        .icp_setup
+        .canisters
+        .iter()
+        .map(|x| {
+            let mut x = x.1.clone();
+            let path = Path::new(&x.wasm);
+            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            x.wasm = relative.to_string_lossy().to_string();
+            x
+        })
+        .collect();
+
     let content = if let Some(_evm_setup) = &setup.evm_setup {
         let template = TestsRsIcpEvmTemplate {};
         template.render()?
     } else {
-        let template = TestsRsIcpTemplate {};
+        let template = TestsRsIcpTemplate {
+            canisters: &canisters,
+        };
         template.render()?
     };
 

@@ -3,20 +3,40 @@ use std::path::PathBuf;
 use candid::Principal;
 use ic_test::{IcpTest, IcpUser};
 
+use crate::bindings::{
+    {% for c in canisters %}    {{ c.name }}::{self, {{c.service_name}} },{% endfor %}
+};
+
+
 struct Env {
     test: IcpTest,
+{% for c in canisters %}    {{ c.name }}: {{c.service_name}},
+    {% endfor %}
 }
 
 async fn setup(test: IcpTest) -> Env {
     let icp_user = test.icp.test_user(0);
-    // ...
 
-    Env { test }
+    // Setup canisters
+    {% for c in canisters %}
+    let {{ c.name }} = {{ c.name }}::deploy(
+        &icp_user,
+        {{ c.name }}::InitArg {
+            // ...
+        },
+    )
+    .call()
+    .await;
+
+    {% endfor %}
+
+    Env { test,{% for c in canisters %}    {{ c.name }},
+    {% endfor %} }
 }
 
 #[tokio::test]
 async fn test_() {
-    let Env { test } = setup(IcpTest::new().await).await;
+    let Env { test,{% for c in canisters %}{{ c.name }},{% endfor %} } = setup(IcpTest::new().await).await;
 
     // ...
 

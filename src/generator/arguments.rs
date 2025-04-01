@@ -28,7 +28,10 @@ pub enum Command {
         test_folder: String,
     },
     // Update the existing test project
-    Update {},
+    Update {
+        #[arg(long, default_missing_value = "false")]
+        force: bool,
+    },
     // Add a canister or a contract
     Add {
         /// Choose what you want to add

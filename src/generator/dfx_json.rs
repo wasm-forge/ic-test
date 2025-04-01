@@ -1,5 +1,6 @@
 use std::{collections::HashMap, fs, path::Path};
 
+use convert_case::{Case, Casing};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
@@ -74,6 +75,7 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
             let mut canister_setup = CanisterSetup {
                 name: canister_name.clone(),
+                service_name: format!("{}Canister", canister_name).to_case(Case::Pascal),
                 candid,
                 wasm,
                 specified_id: None,

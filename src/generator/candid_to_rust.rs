@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Error;
 use candid::Principal;
-use ic_cdk_bindgen::code_generator;
+use wf_cdk_bindgen::code_generator;
 
 use crate::{
     common::get_path_relative_to_test_dir,
@@ -50,7 +50,9 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let mut config = code_generator::Config::new();
 
             config.set_target(code_generator::Target::Builder);
-            config.set_service_name(format!("{}Canister", canister.name));
+
+            config.set_service_name(canister.service_name.clone());
+
             if let Some(specified_id) = canister.specified_id.clone() {
                 config.set_canister_id(Principal::from_text(&specified_id).unwrap());
             }
@@ -64,7 +66,7 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
 
             let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
 
-            let content = ic_cdk_bindgen::code_generator::compile(&config, &env, &actor);
+            let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
             fs::write(&canister_file, content)
                 .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.name));
