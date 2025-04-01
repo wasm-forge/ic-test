@@ -99,6 +99,7 @@ pub struct CanisterSetup {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ContractSetup {
     pub name: String,
+    pub var_name: String,
     pub sol_json: String,
 }
 

@@ -3,6 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use convert_case::{Case, Casing};
 use toml_edit::DocumentMut;
 
 use crate::ic_test_json::{ContractSetup, IcpTestSetup};
@@ -41,10 +42,13 @@ pub fn add_contract(
         };
 
         if json.exists() && json.is_file() {
+            let var_name = contract_name.to_case(Case::Snake);
+
             evm_setup.contracts.insert(
                 contract_name.to_string(),
                 ContractSetup {
                     name: contract_name.to_string(),
+                    var_name,
                     sol_json: json.to_string_lossy().to_string(),
                 },
             );

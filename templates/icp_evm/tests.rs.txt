@@ -8,16 +8,16 @@ use candid::Principal;
 use ic_test::{EvmUser, IcpTest, IcpUser};
 
 use crate::bindings::{
-    chain_fusion::{self, ChainFusionCanister},
-    evm_rpc::{self, EvmRpcCanister},
-    evm::Coprocessor::{self, CoprocessorInstance},
+{% for c in canisters %}    {{ c.name }}::{self, {{c.service_name}}},{% endfor %}
+{% for c in contracts %}    evm::{{ c.name }}::{self, {{c.name}}Instance},{% endfor %}
+
 };
 
 struct Env {
     test: IcpTest,
-    chain_fusion: ChainFusionCanister,
-    evm_rpc: EvmRpcCanister,
-    coprocessor: CoprocessorInstance<(), EvmUser>,
+{% for c in canisters %}    {{ c.name }}: {{c.service_name}},{% endfor %}
+{% for c in contracts %}    {{ c.var_name }}: {{c.name}}Instance<(), EvmUser>,{% endfor %}
+
     evm_user: EvmUser,
 }
 
@@ -27,39 +27,17 @@ async fn setup(test: IcpTest) -> Env {
 
     let coprocessor = Coprocessor::deploy(evm_user.clone()).await.unwrap();
 
-    let evm_rpc = evm_rpc::deploy(
-        &icp_user,
-        evm_rpc::InstallArgs {
-            logFilter: None,
-            demo: None,
-            manageApiKeys: None,
-            overrideProvider: None,
-            nodesInSubnet: None,
-        },
-    )
-    .with_canister_id(Principal::from_text("7hfb6-caaaa-aaaar-qadga-cai").unwrap())
-    .call()
-    .await;
+{% for c in canisters %}
 
-    let chain_fusion = chain_fusion::deploy(
+    let {{c.name}} = {{c.name}}::deploy(
         &icp_user,
-        chain_fusion::InitArg {
-            ecdsa_key_id: chain_fusion::EcdsaKeyId {
-                curve: chain_fusion::EcdsaCurve::Secp256K1,
-                name: "dfx_test_key".to_string(),
-            },
-            rpc_service: chain_fusion::RpcService::Custom(chain_fusion::RpcApi {
-                url: test.evm.rpc_url().to_string(),
-                headers: None,
-            }),
-            chain_id: test.evm.chain_id(),
-            filter_addresses: vec![coprocessor.address().to_string()],
-            coprocessor_evm_address: coprocessor.address().to_string(),
-            filter_events: vec!["NewJob(uint256)".to_string()],
-        },
+        // init args 
+        // ...
     )
     .call()
     .await;
+{% endfor %}
+
 
     while chain_fusion.get_evm_address().call().await.is_none() {
         test.tick().await;
@@ -76,6 +54,7 @@ async fn setup(test: IcpTest) -> Env {
         .get_receipt()
         .await
         .unwrap();
+
     assert!(receipt.status());
 
     test.evm
@@ -89,46 +68,54 @@ async fn setup(test: IcpTest) -> Env {
     Env {
         test,
         evm_user,
-        chain_fusion,
-        evm_rpc,
-        coprocessor,
+
+{% for c in canisters %}            {{ c.name }},{% endfor %}
+//        chain_fusion,
+//        evm_rpc,
+{% for c in contracts %}    {{ c.var_name }},{% endfor %}
+//        coprocessor,
     }
 }
 
 #[tokio::test]
-async fn test_coprocessor_job() {
+async fn test_() {
     let Env {
         test,
         evm_user,
-        chain_fusion: _,
-        evm_rpc: _,
-        coprocessor,
+
+{% for c in canisters %}            {{ c.name }},{% endfor %}
+//        chain_fusion,
+//        evm_rpc,
+{% for c in contracts %}    {{ c.var_name }},{% endfor %}
+//        coprocessor,
+
     } = setup(IcpTest::new().await).await;
 
-    let user_balance_before = test.evm.get_balance(evm_user.address).await;
+//    let user_balance_before = test.evm.get_balance(evm_user.address).await;
 
-    let payment = parse_ether("0.1").unwrap();
+//    let payment = parse_ether("0.1").unwrap();
 
-    let receipt = coprocessor
-        .newJob()
-        .value(payment)
-        .send()
-        .await
-        .unwrap()
-        .get_receipt()
-        .await
-        .unwrap();
-    assert!(receipt.status());
+//    let receipt = coprocessor
+//        .newJob()
+//        .value(payment)
+//        .send()
+//        .await
+//        .unwrap()
+//        .get_receipt()
+//        .await
+//        .unwrap();
 
-    let user_balance_after = test.evm.get_balance(evm_user.address).await;
+//    assert!(receipt.status());
+
+//    let user_balance_after = test.evm.get_balance(evm_user.address).await;
 
     // This is not a strict equality because of gas cost payments.
-    assert!(user_balance_before - payment >= user_balance_after);
+//    assert!(user_balance_before - payment >= user_balance_after);
 
-    for _ in 0..100 {
-        test.icp.tick().await;
-    }
+//    for _ in 0..100 {
+//        test.icp.tick().await;
+//    }
 
-    let result = coprocessor.getResult(Uint::from(0)).call().await.unwrap();
-    assert_eq!(result._0, "6765");
+//    let result = coprocessor.getResult(Uint::from(0)).call().await.unwrap();
+//    assert_eq!(result._0, "6765");
 }
