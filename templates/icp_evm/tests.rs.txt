@@ -7,17 +7,15 @@ use alloy::{
 use candid::Principal;
 use ic_test::{EvmUser, IcpTest, IcpUser};
 
-use crate::bindings::{
-{% for c in canisters %}    {{ c.name }}::{self, {{c.service_name}}},{% endfor %}
-{% for c in contracts %}    evm::{{ c.name }}::{self, {{c.name}}Instance},{% endfor %}
-
+use crate::bindings::{ {% for c in canisters %}
+    {{ c.name }}::{self, {{c.service_name}}},{% endfor %}{% for c in contracts %}
+    evm::{{ c.name }}::{self, {{c.name}}Instance},{% endfor %}
 };
 
 struct Env {
-    test: IcpTest,
-{% for c in canisters %}    {{ c.name }}: {{c.service_name}},{% endfor %}
-{% for c in contracts %}    {{ c.var_name }}: {{c.name}}Instance<(), EvmUser>,{% endfor %}
-
+    test: IcpTest,{% for c in canisters %}
+    {{ c.name }}: {{c.service_name}},{% endfor %}{% for c in contracts %}
+    {{ c.var_name }}: {{c.name}}Instance<(), EvmUser>,{% endfor %}
     evm_user: EvmUser,
 }
 
@@ -38,42 +36,14 @@ async fn setup(test: IcpTest) -> Env {
     .await;
 {% endfor %}
 
-
-    while chain_fusion.get_evm_address().call().await.is_none() {
-        test.tick().await;
-    }
-
-    let canister_evm_address =
-        Address::from_hex(chain_fusion.get_evm_address().call().await.unwrap()).unwrap();
-
-    let receipt = coprocessor
-        .updateCoprocessor(canister_evm_address)
-        .send()
-        .await
-        .unwrap()
-        .get_receipt()
-        .await
-        .unwrap();
-
-    assert!(receipt.status());
-
-    test.evm
-        .transfer(
-            &evm_user,
-            canister_evm_address,
-            parse_ether("0.01").unwrap(),
-        )
-        .await;
+    // Additional setup steps
+    // ...
 
     Env {
         test,
-        evm_user,
-
-{% for c in canisters %}            {{ c.name }},{% endfor %}
-//        chain_fusion,
-//        evm_rpc,
-{% for c in contracts %}    {{ c.var_name }},{% endfor %}
-//        coprocessor,
+        evm_user,{% for c in canisters %}
+        {{ c.name }},{% endfor %}{% for c in contracts %}
+        {{ c.var_name }},{% endfor %}
     }
 }
 
@@ -81,41 +51,12 @@ async fn setup(test: IcpTest) -> Env {
 async fn test_() {
     let Env {
         test,
-        evm_user,
-
-{% for c in canisters %}            {{ c.name }},{% endfor %}
-//        chain_fusion,
-//        evm_rpc,
-{% for c in contracts %}    {{ c.var_name }},{% endfor %}
-//        coprocessor,
-
+        evm_user,{% for c in canisters %}
+        {{ c.name }},{% endfor %}{% for c in contracts %}
+        {{ c.var_name }},{% endfor %}
     } = setup(IcpTest::new().await).await;
 
-//    let user_balance_before = test.evm.get_balance(evm_user.address).await;
+    // Your test code
+    // ...
 
-//    let payment = parse_ether("0.1").unwrap();
-
-//    let receipt = coprocessor
-//        .newJob()
-//        .value(payment)
-//        .send()
-//        .await
-//        .unwrap()
-//        .get_receipt()
-//        .await
-//        .unwrap();
-
-//    assert!(receipt.status());
-
-//    let user_balance_after = test.evm.get_balance(evm_user.address).await;
-
-    // This is not a strict equality because of gas cost payments.
-//    assert!(user_balance_before - payment >= user_balance_after);
-
-//    for _ in 0..100 {
-//        test.icp.tick().await;
-//    }
-
-//    let result = coprocessor.getResult(Uint::from(0)).call().await.unwrap();
-//    assert_eq!(result._0, "6765");
 }
