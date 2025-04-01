@@ -72,8 +72,6 @@ pub fn find_wasm(canister_name: &str, setup: &IcpTestSetup) -> Result<String> {
         let mut wasm_file = canister_dir.clone();
         wasm_file.push(name);
 
-        println!("checking canister path: {:?}", wasm_file);
-
         if wasm_file.exists() && wasm_file.is_file() {
             let relative_wasm = get_relative_path(wasm_file.as_path(), setup)?;
 

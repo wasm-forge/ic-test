@@ -2751,7 +2751,7 @@ dependencies = [
 
 [[package]]
 name = "ic-test"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "alloy",
  "alloy-node-bindings",
@@ -5920,9 +5920,9 @@ dependencies = [
 
 [[package]]
 name = "wf-cdk-bindgen"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25f12f59b4c6521d63b96e0fb765f94624fa734a327e7318821540823ba7a67d"
+checksum = "00db348325d0f9940f55663366c64bf56c4aca9725ae5d50abef88545684449b"
 dependencies = [
  "candid",
  "candid_parser",

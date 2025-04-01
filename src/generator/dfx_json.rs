@@ -16,8 +16,6 @@ pub struct DfxJson {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DfxCanister {
-    pub candid: Option<String>,
-
     pub init_arg_file: Option<String>,
 
     pub init_arg: Option<String>,
@@ -34,15 +32,15 @@ pub struct DfxCanister {
     pub specified_id: Option<String>,
 }
 
-pub fn find_candid(canister_name: &str, canister: &DfxCanister) -> Option<String> {
+pub fn find_candid(canister_name: &str, _canister: &DfxCanister) -> Option<String> {
     // 1. try finding the local file
-    if let Some(candid) = &canister.candid {
-        let cached_did_path = Path::new(&candid);
+    // if let Some(candid) = &canister.candid {
+    //     let cached_did_path = Path::new(&candid);
 
-        if cached_did_path.exists() && cached_did_path.is_file() {
-            return Some(candid.clone());
-        }
-    }
+    //     if cached_did_path.exists() && cached_did_path.is_file() {
+    //         return Some(candid.clone());
+    //     }
+    // }
 
     // 2. try using dfx cached .did file
     // TODO: which .did file is the correct one?
@@ -70,6 +68,7 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
         for (canister_name, canister) in canisters {
             // prepare canister
             let candid = find_candid(canister_name, canister);
+            println!("found candid: {:?}", candid);
 
             let wasm = find_wasm(canister_name, setup)?;
 
@@ -81,9 +80,9 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
                 specified_id: None,
             };
 
-            if let Some(candid) = &canister.candid {
-                canister_setup.candid = Some(candid.clone());
-            }
+            //if let Some(candid) = &canister.candid {
+            //    canister_setup.candid = Some(candid.clone());
+            //}
 
             canister_setup.specified_id = canister.specified_id.clone();
 
