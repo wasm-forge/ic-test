@@ -25,6 +25,7 @@ syn = "2.0"
 quote = "1.0"
 candid_parser = "0.1.4"
 #ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
+#wf-cdk-bindgen = { path = "../wf-cdk-bindgen" }
 wf-cdk-bindgen = "0.1.6"
 
 

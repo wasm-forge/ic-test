@@ -5920,7 +5920,9 @@ dependencies = [
 
 [[package]]
 name = "wf-cdk-bindgen"
-version = "0.1.5"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e14d3ee5d18d9ea3588e0f885fdfee9e850287c32e708418002a0f7d4ce0e6b2"
 dependencies = [
  "candid",
  "candid_parser",
