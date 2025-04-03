@@ -34,8 +34,7 @@ async fn setup(test: IcpTest) -> Env {
     // ...
 
     Env {
-        test,
-        evm_user,{% for c in canisters %}
+        test,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}
     }
 }
