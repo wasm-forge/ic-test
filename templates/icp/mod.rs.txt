@@ -11,6 +11,6 @@ type DeployBuilder<C> = ic_test::DeployBuilder<C, Caller>;
 
 {% for c in canisters %}
 // candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
-pub mod {{ c.name }};
+pub mod {{ c.var_name }};
 {% endfor %}
 

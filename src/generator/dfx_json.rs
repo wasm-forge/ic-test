@@ -74,6 +74,7 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
             let mut canister_setup = CanisterSetup {
                 name: canister_name.clone(),
+                var_name: canister_name.to_case(Case::Snake),
                 service_name: format!("{}Canister", canister_name).to_case(Case::Pascal),
                 candid,
                 wasm,

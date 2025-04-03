@@ -8,13 +8,13 @@ use candid::Principal;
 use ic_test::{EvmUser, IcpTest, IcpUser};
 
 use crate::bindings::{ {% for c in canisters %}
-    {{ c.name }}::{self, {{c.service_name}}},{% endfor %}{% for c in contracts %}
+    {{ c.var_name }}::{self, {{c.service_name}}},{% endfor %}{% for c in contracts %}
     evm::{{ c.name }}::{self, {{c.name}}Instance},{% endfor %}
 };
 
 struct Env {
     test: IcpTest,{% for c in canisters %}
-    {{ c.name }}: {{c.service_name}},{% endfor %}{% for c in contracts %}
+    {{ c.var_name }}: {{c.service_name}},{% endfor %}{% for c in contracts %}
     {{ c.var_name }}: {{c.name}}Instance<(), EvmUser>,{% endfor %}
     evm_user: EvmUser,
 }
@@ -27,7 +27,7 @@ async fn setup(test: IcpTest) -> Env {
 
 {% for c in canisters %}
 
-    let {{c.name}} = {{c.name}}::deploy(
+    let {{c.var_name}} = {{c.var_name}}::deploy(
         &icp_user,
         // init args 
         // ...
@@ -42,7 +42,7 @@ async fn setup(test: IcpTest) -> Env {
     Env {
         test,
         evm_user,{% for c in canisters %}
-        {{ c.name }},{% endfor %}{% for c in contracts %}
+        {{ c.var_name }},{% endfor %}{% for c in contracts %}
         {{ c.var_name }},{% endfor %}
     }
 }
@@ -52,7 +52,7 @@ async fn test_() {
     let Env {
         test,
         evm_user,{% for c in canisters %}
-        {{ c.name }},{% endfor %}{% for c in contracts %}
+        {{ c.var_name }},{% endfor %}{% for c in contracts %}
         {{ c.var_name }},{% endfor %}
     } = setup(IcpTest::new().await).await;
 

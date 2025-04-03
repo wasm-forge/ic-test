@@ -44,7 +44,7 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let candid_path = Path::new(&candid);
 
             let mut canister_file = bindings_path.clone();
-            canister_file.push(format!("{}.rs", &canister.name));
+            canister_file.push(format!("{}.rs", &canister.var_name));
 
             // try parse candid file
             let mut config = code_generator::Config::new();
@@ -69,7 +69,7 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
             fs::write(&canister_file, content)
-                .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.name));
+                .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.var_name));
             let output = std::process::Command::new("rustfmt")
                 .arg(&canister_file)
                 .output();

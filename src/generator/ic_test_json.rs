@@ -90,6 +90,7 @@ impl Default for IcpTestSetup {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CanisterSetup {
     pub name: String,
+    pub var_name: String,
     pub service_name: String,
     pub candid: Option<String>,
     pub wasm: String,

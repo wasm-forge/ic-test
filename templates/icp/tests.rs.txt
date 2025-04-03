@@ -1,49 +1,53 @@
 use std::path::PathBuf;
 
+use alloy::{
+    hex::FromHex,
+    primitives::{utils::parse_ether, Address, Uint, U256},
+};
 use candid::Principal;
 use ic_test::{IcpTest, IcpUser};
 
-use crate::bindings::{
-    {% for c in canisters %}    {{ c.name }}::{self, {{c.service_name}} },{% endfor %}
+use crate::bindings::{ {% for c in canisters %}
+    {{ c.var_name }}::{self, {{c.service_name}}},{% endfor %}
 };
 
-
 struct Env {
-    test: IcpTest,
-{% for c in canisters %}    {{ c.name }}: {{c.service_name}},
-    {% endfor %}
+    test: IcpTest,{% for c in canisters %}
+    {{ c.var_name }}: {{c.service_name}},{% endfor %}
 }
 
 async fn setup(test: IcpTest) -> Env {
     let icp_user = test.icp.test_user(0);
 
-    // Setup canisters
-    {% for c in canisters %}
-    let {{ c.name }} = {{ c.name }}::deploy(
+{% for c in canisters %}
+
+    let {{c.var_name}} = {{c.var_name}}::deploy(
         &icp_user,
-        {{ c.name }}::InitArg {
-            // ...
-        },
+        // init args 
+        // ...
     )
     .call()
     .await;
+{% endfor %}
 
-    {% endfor %}
+    // Additional setup steps
+    // ...
 
-    Env { test,{% for c in canisters %}    {{ c.name }},
-    {% endfor %} }
+    Env {
+        test,
+        evm_user,{% for c in canisters %}
+        {{ c.var_name }},{% endfor %}
+    }
 }
 
 #[tokio::test]
 async fn test_() {
-    let Env { test,{% for c in canisters %}{{ c.name }},{% endfor %} } = setup(IcpTest::new().await).await;
+    let Env {
+        test,{% for c in canisters %}
+        {{ c.var_name }},{% endfor %}
+    } = setup(IcpTest::new().await).await;
 
+    // Your test code
     // ...
 
-
-    for _ in 0..100 {
-        test.icp.tick().await;
-    }
-
-    // ..
 }
