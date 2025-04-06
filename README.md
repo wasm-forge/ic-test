@@ -4,7 +4,7 @@
 
 ## Overview
 
-ic-test will:
+**ic-test** will:
 - Read `dfx.json` to gather canister information.  
 - Read `foundry.toml` to gather contract information.  
 - Generate Rust type definitions from Candid (`.did`) files.  
