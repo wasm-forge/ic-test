@@ -1,6 +1,6 @@
 # ic-test
 
-**ic-test** is a command-line tool that helps you organize the test workflow for cross-chain projects on the Internet Computer (IC). It uses existing frameworks (`pocket-ic` and `foundry`) to read your `dfx.json` and `foundry.toml` files, then creates a test setup that works in both environments.
+**ic-test** is a command-line tool that helps you organize the test workflow for cross-chain projects on the Internet Computer (IC). It reads your `dfx.json` and `foundry.toml` files to automatically create testing base and uses existing frameworks (`pocket-ic` and `foundry`) to execute tests.
 
 ## Overview
 
@@ -13,7 +13,7 @@ ic-test will:
 
 
 ## Requirements
-- [Rust](https://www.rust-lang.org/) (1.83+ recommended)  
+- [Rust](https://www.rust-lang.org/)
 - [DFX SDK](https://internetcomputer.org/docs/current/developer-docs/build/install/) for local IC canister builds.
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) if your tests involve EVM contracts.
 
