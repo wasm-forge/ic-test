@@ -1,11 +1,11 @@
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, fs};
 
 use convert_case::{Case, Casing};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
 use crate::{
-    common::find_wasm,
+    common::{find_candid, find_wasm},
     ic_test_json::{CanisterSetup, IcpTestSetup},
 };
 
@@ -29,29 +29,9 @@ pub struct DfxCanister {
 
     pub dependencies: Option<Vec<String>>,
 
+    pub id: Option<String>,
+
     pub specified_id: Option<String>,
-}
-
-pub fn find_candid(canister_name: &str, _canister: &DfxCanister) -> Option<String> {
-    // 1. try finding the local file
-    // if let Some(candid) = &canister.candid {
-    //     let cached_did_path = Path::new(&candid);
-
-    //     if cached_did_path.exists() && cached_did_path.is_file() {
-    //         return Some(candid.clone());
-    //     }
-    // }
-
-    // 2. try using dfx cached .did file
-    // TODO: which .did file is the correct one?
-    let cached_did_string = format!(".dfx/local/canisters/{canister_name}/constructor.did");
-    let cached_did_path = Path::new(&cached_did_string);
-
-    if cached_did_path.exists() && cached_did_path.is_file() {
-        return Some(cached_did_string);
-    }
-
-    None
 }
 
 // gather canister information from dfx.json
@@ -67,10 +47,10 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
             // prepare canister
-            let candid = find_candid(canister_name, canister);
-            println!("found candid: {:?}", candid);
+            let candid =
+                find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 
-            let wasm = find_wasm(canister_name, setup)?;
+            let wasm = find_wasm(canister_name, canister, setup)?;
 
             let mut canister_setup = CanisterSetup {
                 name: canister_name.clone(),

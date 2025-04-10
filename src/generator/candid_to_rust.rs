@@ -8,7 +8,7 @@ use candid::Principal;
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
-    common::get_path_relative_to_test_dir,
+    common::{expand_path, get_path_relative_to_test_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
 
@@ -41,7 +41,7 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
     for (_canister_name, canister) in setup.icp_setup.canisters.iter() {
         if let Some(candid) = &canister.candid {
             // read candid
-            let candid_path = Path::new(&candid);
+            let candid_path = expand_path(Path::new(&candid))?;
 
             let mut canister_file = bindings_path.clone();
             canister_file.push(format!("{}.rs", &canister.var_name));
@@ -64,7 +64,8 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
 
             config.set_canister_wasm_path(path.to_string_lossy().to_string());
 
-            let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
+            let (env, actor) =
+                candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
@@ -73,7 +74,6 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let output = std::process::Command::new("rustfmt")
                 .arg(&canister_file)
                 .output();
-            println!("{:?}", output);
         }
     }
 
