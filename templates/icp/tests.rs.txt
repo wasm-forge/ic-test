@@ -1,9 +1,5 @@
 use std::path::PathBuf;
 
-use alloy::{
-    hex::FromHex,
-    primitives::{utils::parse_ether, Address, Uint, U256},
-};
 use candid::Principal;
 use ic_test::{IcpTest, IcpUser};
 

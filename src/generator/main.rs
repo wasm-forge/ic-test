@@ -84,21 +84,21 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
                 .arg("--lib")
                 .status()?;
         }
-        arguments::Command::Update { force } => {
+        arguments::Command::Update { force: _ } => {
             let test_folder = Path::new(&setup.test_folder);
 
             let ic_test_json = Path::new(&args.ic_test_json);
 
             // we want to avoid update if the ic-test.json is missing
             // (hence, we don't know if we can just regenerate on top of the test folder)
-            if *force || !ic_test_json.exists() {
+            if !ic_test_json.exists() {
                 return Err(anyhow::anyhow!(
                     "The test ic-test.json was not initialized yet, use the 'new' command instead."
                 ));
             }
 
             // the test folder must exist already
-            if *force || !test_folder.exists() {
+            if !test_folder.exists() {
                 return Err(anyhow::anyhow!(
                     format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy().to_string())
                 ));

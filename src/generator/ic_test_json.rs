@@ -47,6 +47,9 @@ pub struct IcpTestSetup {
     // Tests folder: the workspace project for generating tests and bindings
     pub test_folder: String,
 
+    #[serde(skip)]
+    pub forced: bool,
+
     // ICP settings
     pub icp_setup: IcpSetup,
 
@@ -81,6 +84,7 @@ impl Default for IcpTestSetup {
     fn default() -> Self {
         Self {
             test_folder: "tests".to_string(),
+            forced: false,
             icp_setup: IcpSetup::default(),
             evm_setup: None,
         }
@@ -145,7 +149,9 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         arguments::Command::New { test_folder } => {
             setup.test_folder = test_folder.clone();
         }
-        arguments::Command::Update { force: _ } => {}
+        arguments::Command::Update { force } => {
+            setup.forced = *force;
+        }
         arguments::Command::Add { command } => {
             // either add a canister or a contract to the setup
             match command {

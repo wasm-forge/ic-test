@@ -26,8 +26,13 @@ struct TestsRsIcpEvmTemplate<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "Cargo.toml.txt")]
-struct CargoTomlTemplate<'a> {
+#[template(path = "icp/Cargo.toml.txt")]
+struct CargoTomlIcpTemplate<'a> {
+    test_folder: &'a String,
+}
+#[derive(Template)]
+#[template(path = "icp_evm/Cargo.toml.txt")]
+struct CargoTomlIcpEvmTemplate<'a> {
     test_folder: &'a String,
 }
 
@@ -42,20 +47,23 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
     src_dir.push("src");
     fs::create_dir_all(&src_dir)?;
 
-    let mut lib_rs = src_dir.clone();
-    lib_rs.push("lib.rs");
+    // generate cargo.toml
+    let content = if let Some(_evm_setup) = &setup.evm_setup {
+        let template = CargoTomlIcpEvmTemplate {
+            test_folder: &setup.test_folder,
+        };
 
-    let mut tests_rs = src_dir.clone();
-    tests_rs.push("tests.rs");
+        template.render()?
+    } else {
+        let template = CargoTomlIcpTemplate {
+            test_folder: &setup.test_folder,
+        };
+
+        template.render()?
+    };
 
     let mut cargo_toml = project_dir.clone();
     cargo_toml.push("Cargo.toml");
-
-    let template = CargoTomlTemplate {
-        test_folder: &setup.test_folder,
-    };
-
-    let content = template.render()?;
     fs::write(cargo_toml, content)
         .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
 
@@ -72,6 +80,7 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
         })
         .collect();
 
+    // generate test.rs
     let content = if let Some(evm_setup) = &setup.evm_setup {
         let contracts: Vec<ContractSetup> = evm_setup
             .contracts
@@ -97,8 +106,15 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
         template.render()?
     };
 
-    fs::write(tests_rs, content).unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
+    let tests_rs = src_dir.join("tests.rs");
 
+    if !tests_rs.exists() || setup.forced {
+        fs::write(tests_rs, content)
+            .unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
+    }
+
+    // generate lib.rs
+    let lib_rs = src_dir.join("lib.rs");
     let template = LibRsTemplate {};
 
     let content = template.render()?;

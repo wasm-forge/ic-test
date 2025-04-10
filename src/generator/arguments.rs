@@ -29,7 +29,7 @@ pub enum Command {
     },
     // Update the existing test project
     Update {
-        #[arg(long, default_missing_value = "false")]
+        #[arg(long, default_value = "false")]
         force: bool,
     },
     // Add a canister or a contract
