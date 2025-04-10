@@ -1,6 +1,6 @@
 [package]
 name = "ic-test"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "This tool helps to organize IC canister testing as well as cross-testing between ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
@@ -17,9 +17,9 @@ name = "ic-test"
 path = "src/generator/main.rs"
 
 [dependencies]
-clap = { version = "4.5.34", features = ["derive"] }
+clap = { version = "4.5.35", features = ["derive"] }
 anyhow = { version = "1.0.97", default-features = false }
-env_logger = "0.11.7"
+env_logger = "0.11.8"
 
 syn = "2.0"
 quote = "1.0"
@@ -29,14 +29,14 @@ candid_parser = "0.1.4"
 wf-cdk-bindgen = "0.1.6"
 
 
-prettyplease = "0.2.22"
+prettyplease = "0.2.32"
 serde_json = { version = "1.0" }
 serde = "1.0.219"
 regress = "0.10.3"
 serde-json-schema = "0.1.1"
-indexmap = { version = "2.8.0", features = ["serde"] }
+indexmap = { version = "2.9.0", features = ["serde"] }
 reqwest = "0.12.15"
-tokio = { version = "1.44.1", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 fuzzy-select = "0.1.3"
 askama = "0.13"
 
@@ -47,7 +47,7 @@ alloy-node-bindings = "0.12.0"
 lazy_static = "1.4.0"
 pocket-ic = "7.0.0"
 cargo_metadata = "0.19.1"
-ic-agent = "0.39.3"
+ic-agent = "0.40.0"
 thiserror = "2.0.12"
 candid = "0.10"
 ic-cdk = "0.17.1"

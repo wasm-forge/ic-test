@@ -70,8 +70,10 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
 
     let mut cargo_toml = project_dir.clone();
     cargo_toml.push("Cargo.toml");
-    fs::write(cargo_toml, content)
-        .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
+    if !cargo_toml.exists() || setup.forced {
+        fs::write(cargo_toml, content)
+            .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
+    }
 
     let canisters: Vec<CanisterSetup> = setup
         .icp_setup
