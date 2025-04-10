@@ -71,9 +71,10 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
 
             fs::write(&canister_file, content)
                 .unwrap_or_else(|_| panic!("Could not write to file: {}", &canister.var_name));
-            let output = std::process::Command::new("rustfmt")
+
+            let _output = std::process::Command::new("rustfmt")
                 .arg(&canister_file)
-                .output();
+                .output()?;
         }
     }
 
