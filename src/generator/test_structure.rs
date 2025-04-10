@@ -29,11 +29,13 @@ struct TestsRsIcpEvmTemplate<'a> {
 #[template(path = "icp/Cargo.toml.txt")]
 struct CargoTomlIcpTemplate<'a> {
     test_folder: &'a String,
+    ic_test_version: &'a String,
 }
 #[derive(Template)]
 #[template(path = "icp_evm/Cargo.toml.txt")]
 struct CargoTomlIcpEvmTemplate<'a> {
     test_folder: &'a String,
+    ic_test_version: &'a String,
 }
 
 pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
@@ -47,16 +49,20 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
     src_dir.push("src");
     fs::create_dir_all(&src_dir)?;
 
+    let version = env!("CARGO_PKG_VERSION").to_string();
+
     // generate cargo.toml
     let content = if let Some(_evm_setup) = &setup.evm_setup {
         let template = CargoTomlIcpEvmTemplate {
             test_folder: &setup.test_folder,
+            ic_test_version: &version,
         };
 
         template.render()?
     } else {
         let template = CargoTomlIcpTemplate {
             test_folder: &setup.test_folder,
+            ic_test_version: &version,
         };
 
         template.render()?
