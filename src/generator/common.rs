@@ -148,28 +148,26 @@ pub fn find_wasm(
 ) -> Result<String> {
     let mut files = Vec::new();
 
-    let mut canister_dir = get_main_project_dir()?;
-    canister_dir.push(format!(
+    let canister_dir = get_main_project_dir()?.join(format!(
         ".dfx/local/canisters/{canister_name}/{canister_name}.wasm"
     ));
-
     files.push(canister_dir);
 
-    let mut canister_dir = get_main_project_dir()?;
-    canister_dir.push(format!(
+    let canister_dir = get_main_project_dir()?.join(format!(
         ".dfx/local/canisters/{canister_name}/{canister_name}.wasm.gz"
     ));
+    files.push(canister_dir);
 
     let pull_dir = get_pull_folder(canister);
 
     if let Some(dir) = pull_dir {
-        let mut c1 = dir.clone();
-        c1.push("canister.wasm");
-        files.push(c1);
+        files.push(dir.join("canister.wasm"));
+        files.push(dir.join("canister.wasm.gz"));
+    }
 
-        let mut c2 = dir.clone();
-        c2.push("canister.wasm.gz");
-        files.push(c2);
+    // direct wasm property search
+    if let Some(wasm) = &canister.wasm {
+        files.push(PathBuf::from(wasm.clone()));
     }
 
     for wasm_file in &files {
