@@ -111,30 +111,30 @@ pub fn get_pull_folder(canister: &DfxCanister) -> Option<PathBuf> {
 }
 
 pub fn find_candid(canister_name: &str, canister: &DfxCanister) -> Option<PathBuf> {
+    let mut files = Vec::new();
+
     // 1. try finding the candid file for the pulled canister
     let pull_dir = get_pull_folder(canister);
-
-    if let Some(mut candid) = pull_dir {
-        candid.push("service.did");
-        if candid.exists() && candid.is_file() {
-            let candid =
-                get_relative_path(candid.as_path()).expect("Could not find the candid file");
-
-            return Some(candid);
-        }
+    if let Some(pull) = pull_dir {
+        files.push(pull.join("service.did"));
     }
 
     // 2. try using dfx cached .did file
-    let mut candid_file = PathBuf::new();
-    candid_file.push(format!(
+    files.push(PathBuf::from(format!(
         ".dfx/local/canisters/{canister_name}/constructor.did"
-    ));
+    )));
 
-    if candid_file.exists() && candid_file.is_file() {
-        let candid =
-            get_relative_path(candid_file.as_path()).expect("Could not find the candid file");
+    // direct candid search
+    if let Some(candid) = &canister.candid {
+        files.push(PathBuf::from(candid.clone()));
+    }
 
-        return Some(candid);
+    for file in files {
+        if file.exists() && file.is_file() {
+            let candid = get_relative_path(file.as_path()).expect("Error finding relative path!");
+
+            return Some(candid);
+        }
     }
 
     None

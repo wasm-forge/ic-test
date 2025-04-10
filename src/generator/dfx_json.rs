@@ -24,6 +24,8 @@ pub struct DfxCanister {
 
     pub wasm: Option<String>,
 
+    pub candid: Option<String>,
+
     #[serde(rename = "type")]
     pub canister_type: Option<String>,
 
