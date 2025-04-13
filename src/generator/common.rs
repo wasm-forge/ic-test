@@ -37,10 +37,7 @@ pub fn get_relative_path(target_path: &Path) -> Result<PathBuf> {
 
         if let Ok(path) = target_path.strip_prefix(&project_dir) {
             // is relative to project?
-            let mut rel_path = PathBuf::new();
-            rel_path.push(".");
-            rel_path.push(path);
-            rel_path
+            PathBuf::from(path)
         } else {
             // try to find it relative to $HOME
             let home: PathBuf = get_home_dir();
@@ -221,7 +218,7 @@ mod tests {
 
         let result = get_relative_path(&target).unwrap();
 
-        assert_eq!(result, PathBuf::from("./src/main.rs"));
+        assert_eq!(result, PathBuf::from("src/main.rs"));
     }
 
     #[test]

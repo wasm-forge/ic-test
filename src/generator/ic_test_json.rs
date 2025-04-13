@@ -50,6 +50,10 @@ pub struct IcpTestSetup {
     #[serde(skip)]
     pub forced: bool,
 
+    #[serde(skip)]
+    pub regenerate_cargo: bool,
+
+
     // ICP settings
     pub icp_setup: IcpSetup,
 
@@ -85,6 +89,7 @@ impl Default for IcpTestSetup {
         Self {
             test_folder: "tests".to_string(),
             forced: false,
+            regenerate_cargo: false,
             icp_setup: IcpSetup::default(),
             evm_setup: None,
         }
@@ -157,7 +162,8 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
             match command {
                 arguments::AddCommand::Canister { name, wasm: _ } => {
                     println!("Adding canister {name}");
-                    // TODO: add canister
+
+                    todo!("Adding a canister is currently not supported. To add one manually, modify the ic-test.json file directly.");
                 }
                 arguments::AddCommand::Contract { name, sol_json } => {
                     println!("Adding contract {name}");

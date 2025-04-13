@@ -70,7 +70,7 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
 
     let mut cargo_toml = project_dir.clone();
     cargo_toml.push("Cargo.toml");
-    if !cargo_toml.exists() || setup.forced {
+    if !cargo_toml.exists() || setup.regenerate_cargo {
         fs::write(cargo_toml, content)
             .unwrap_or_else(|_| panic!("Could not create the Cargo.toml file"));
     }

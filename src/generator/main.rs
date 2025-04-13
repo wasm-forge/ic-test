@@ -83,6 +83,9 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
                 .arg(test_folder.to_string_lossy().to_string())
                 .arg("--lib")
                 .status()?;
+
+            // we only regenerate cargo when creating the test project
+            setup.regenerate_cargo = true;
         }
         arguments::Command::Update { force: _ } => {
             let test_folder = Path::new(&setup.test_folder);
