@@ -7,8 +7,8 @@ edition = "2021"
 candid = "0.10"
 cargo_metadata = "0.19.1"
 ic-cdk = "0.17.1"
-#ic-test = "{{ ic_test_version }}"
-ic-test = "0.1.2"
+ic-test = {version = "{{ ic_test_version }}"}
+#ic-test = {version = "{{ ic_test_version }}", path = "../../ic-test"}
 pocket-ic = "7.0.0"
 serde = "1.0.219"
 serde_bytes = "0.11.17"

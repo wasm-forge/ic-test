@@ -53,7 +53,6 @@ pub struct IcpTestSetup {
     #[serde(skip)]
     pub regenerate_cargo: bool,
 
-
     // ICP settings
     pub icp_setup: IcpSetup,
 

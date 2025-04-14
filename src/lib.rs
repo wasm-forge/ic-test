@@ -5,11 +5,21 @@ use icp::http_outcalls::handle_http_outcalls;
 use serde::Deserialize;
 use tokio::task;
 
+#[cfg(feature = "evm")]
 mod evm;
+
+#[cfg(not(feature = "evm"))]
+mod dummy_evm;
+
+#[cfg(not(feature = "evm"))]
+use dummy_evm as evm;
+
+
 mod icp;
+pub use crate::evm::{Evm, EvmUser};
+
 
 pub use crate::{
-    evm::{Evm, EvmUser},
     icp::caller::{CallBuilder, CallError, CallMode, Caller},
     icp::deployer::{DeployBuilder, DeployError, DeployMode, Deployer},
     icp::user::IcpUser,
