@@ -10,6 +10,7 @@ mod test_structure;
 use std::{path::Path, process::Command};
 
 use arguments::IcpTestArgs;
+use candid_to_rust::{generate_candid_value, generate_type};
 use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
@@ -120,7 +121,13 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 }
 
 fn main() -> anyhow::Result<()> {
+
+    let s = generate_candid_value("chain_fusion.did", "initArgument.did")?;
+
+    return Ok(());
+
     env_logger::init();
+    
     let args = IcpTestArgs::try_parse()?;
 
     let mut setup = init_test_config(&args)?;

@@ -1,0 +1,28 @@
+(
+  record {
+    // ecdsa_key_id specifies the threshold key to use for signing transactions.
+    // currently, it is set to the key only present when running dfx locally.
+    ecdsa_key_id = record {
+      name = "dfx_test_key";
+      curve = variant { secp256k1 };
+    };
+    // rpc_service specifies the RPC service to use for interacting with the EVM.
+    // because we're using `anvil` to simulate the EVM locally, we use the default
+    // URL for the `anvil` service.
+    rpc_service = variant {
+      Custom = record {
+        url = "http://localhost:8545";
+        headers = null;
+      }
+    };
+    // filter_addresses specifies the contract addresses we'd like to listen on for events
+    filter_addresses = vec { "0x5FbDB2315678afecb367f032d93F642f64180aa3" };
+    // chain_id specifies the chain ID of the EVM we're interacting with. locally for anvil this is 31337.
+    chain_id = 31337 : nat64;
+    // coprocessor_evm_address specifies the contract address of the EVM coprocessor smart contract.
+    // this is the adress of the contract we interact with to send transactions to the EVM.
+    coprocessor_evm_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    // `filter_events` specifies the events we'd like to listen to on the EVM on the `filter_addresses`.
+    filter_events = vec { "NewJob(uint256)" };
+  }
+)

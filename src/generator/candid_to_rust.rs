@@ -4,7 +4,10 @@ use std::{
 };
 
 use anyhow::Error;
-use candid::Principal;
+use candid::{types::{Type, TypeInner}, Principal};
+use candid_parser::{grammar::IDLInitArgsParser, token::Tokenizer};
+use candid::{IDLArgs, TypeEnv};
+use candid_parser::parse_idl_args;
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
@@ -27,11 +30,97 @@ struct ModRsIcpEvmTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
+
+pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<String, Error> {
+
+    // try parse candid file
+    let mut config = code_generator::Config::new();
+
+    config.set_target(code_generator::Target::Builder);
+
+    config.set_service_name("ServiceName".to_owned());
+
+
+    let (env, actor) =
+    candid_parser::typing::pretty_check_file(Path::new(candid_path))?;    
+
+    // parse arguments
+    let text_value = fs::read_to_string(Path::new(value_file))?;
+
+    use candid::IDLArgs;
+    use candid_parser::parse_idl_args;
+
+    let args: IDLArgs = parse_idl_args(&text_value)?;
+    
+    println!("args1: {args:?}");
+
+    // anotate types
+    let args2 = args.annotate_types(true, &env, args.args.as_slice())?;
+
+    println!("args2: {args2:?}");
+    //  content
+    Ok("".to_owned())
+}
+
+
+pub fn generate_type(candid_path: &str) -> Result<(), Error> {
+
+    // try parse candid file
+    let mut config = code_generator::Config::new();
+
+    config.set_target(code_generator::Target::Builder);
+
+    config.set_service_name("ServiceName".to_owned());
+
+    let canister_file = PathBuf::from("output.rs");
+
+    let (env, actor) =
+    candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
+
+    match &actor {
+        None => {},
+        Some(actor) => {
+
+            let init_args = if let TypeInner::Class(args, _) = actor.as_ref() {
+                Some(args)
+            } else {
+                None
+            };
+
+            if let Some(init) = init_args {
+                for v in init {
+
+                    match v.as_ref() {
+                        TypeInner::Var(name) => {
+                            // get var type
+
+                            let t = env.0.get(name);
+
+                            println!("{name}: {t:?},");
+                            println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
+
+                        },
+                        _ => todo!(),
+                    }
+                }
+
+            }
+        
+        }
+    };    
+
+
+
+    let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
+
+    fs::write(&canister_file, content)?;
+
+    Ok(())
+}
+
 pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
     // current folder
-    let mut bindings_path = env::current_dir()?;
-    bindings_path.push(setup.test_folder.clone());
-    bindings_path.push("src/bindings");
+    let bindings_path = env::current_dir()?.join(setup.test_folder.clone()).join("src/bindings");
 
     fs::create_dir_all(&bindings_path)?;
 
