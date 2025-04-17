@@ -1,0 +1,2 @@
+(42, opt true, vec {1;2;3},
+      opt record {label="text"; 42="haha"})

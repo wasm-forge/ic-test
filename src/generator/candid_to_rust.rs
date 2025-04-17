@@ -53,11 +53,28 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
     let args: IDLArgs = parse_idl_args(&text_value)?;
     
     println!("args1: {args:?}");
+    for arg in &args.args {
+        println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
+    }
+    println!("");
+    println!("...........");
+    println!("");
 
-    // anotate types
-    let args2 = args.annotate_types(true, &env, args.args.as_slice())?;
+    if let Some(a) = &actor {
 
-    println!("args2: {args2:?}");
+        if let TypeInner::Class(a, _) = a.as_ref() {
+
+            // anotate types
+            let args2 = args.annotate_types(true, &env, a.as_slice())?;
+
+            for arg in args2.args {
+                println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
+            }
+
+        }
+
+    }
+
     //  content
     Ok("".to_owned())
 }
@@ -107,9 +124,7 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
             }
         
         }
-    };    
-
-
+    };
 
     let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
