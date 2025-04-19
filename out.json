@@ -1,0 +1,90 @@
+{
+  "type": "var",
+  "type_name": "InitArg",
+  "def": {
+    "type": "record",
+    "fields": [
+      {
+        "field_name": "ecdsa_key_id",
+        "type_name": "EcdsaKeyId",
+        "def": {
+          "type": "record",
+          "fields": [
+            {
+              "field_name": "name",
+              "def": {
+                "type": "text",
+                "default": ""
+              }
+            },
+            {
+              "field_name": "curve",
+              "type_name": "EcdsaCurve",
+              "def": {
+                "type": "variant",
+                "values": [
+                  "secp256k1"
+                ],
+                "default": "secp256k1"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "field_name": "rpc_service",
+        "type_name": "RpcService",
+        "def": {
+          "type": "variant",
+          "values": [
+            "EthSepolia",
+            "BaseMainnet",
+            "Custom",
+            "OptimismMainnet",
+            "ArbitrumOne",
+            "EthMainnet",
+            "Chain",
+            "Provider"
+          ],
+          "default": "EthSepolia"
+        }
+      },
+      {
+        "field_name": "filter_addresses",
+        "def": {
+          "type": "vec",
+          "def": {
+            "type": "text",
+            "default": ""
+          },
+          "default": []
+        }
+      },
+      {
+        "field_name": "chain_id",
+        "def": {
+          "type": "int",
+          "default": 0
+        }
+      },
+      {
+        "field_name": "coprocessor_evm_address",
+        "def": {
+          "type": "text",
+          "default": ""
+        }
+      },
+      {
+        "field_name": "filter_events",
+        "def": {
+          "type": "vec",
+          "def": {
+            "type": "text",
+            "default": ""
+          },
+          "default": []
+        }
+      }
+    ]
+  }
+}

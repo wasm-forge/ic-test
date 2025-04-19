@@ -30,7 +30,7 @@ wf-cdk-bindgen = "0.1.6"
 
 
 prettyplease = "0.2.32"
-serde_json = { version = "1.0" }
+serde_json = { version = "1.0",  features = ["preserve_order"]}
 serde = "1.0.219"
 regress = "0.10.3"
 serde-json-schema = "0.1.1"

@@ -3,6 +3,7 @@ mod candid_to_rust;
 mod common;
 mod dependencies;
 mod dfx_json;
+mod type2json;
 mod foundry_toml;
 mod ic_test_json;
 mod test_structure;

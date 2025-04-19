@@ -1,5 +1,5 @@
 use std::{
-    env, fs,
+    env, fs::{self, read_to_string},
     path::{Path, PathBuf},
 };
 
@@ -12,7 +12,7 @@ use wf_cdk_bindgen::code_generator;
 
 use crate::{
     common::{expand_path, get_path_relative_to_test_dir},
-    ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
+    ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup}, type2json::type_to_json,
 };
 
 use askama::Template;
@@ -29,6 +29,7 @@ struct ModRsIcpEvmTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
     contracts: &'a Vec<ContractSetup>,
 }
+
 
 
 pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<String, Error> {
@@ -51,25 +52,28 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
     use candid_parser::parse_idl_args;
 
     let args: IDLArgs = parse_idl_args(&text_value)?;
-    
-    println!("args1: {args:?}");
-    for arg in &args.args {
-        println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
-    }
-    println!("");
-    println!("...........");
-    println!("");
 
     if let Some(a) = &actor {
 
         if let TypeInner::Class(a, _) = a.as_ref() {
 
-            // anotate types
-            let args2 = args.annotate_types(true, &env, a.as_slice())?;
+            for t in a {
+                let json = type_to_json(t, &env);
+                let s = serde_json::to_string_pretty(&json).unwrap();
 
-            for arg in args2.args {
-                println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
+                fs::write("out.json", &s)?;
+
+                println!("{}", s);
+    
             }
+           
+
+            // anotate types
+            //let args2 = args.annotate_types(true, &env, a.as_slice())?;
+
+            //for arg in args2.args {
+            //    println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
+            //}
 
         }
 
