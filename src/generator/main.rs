@@ -7,13 +7,15 @@ mod foundry_toml;
 mod ic_test_json;
 mod test_structure;
 
-use std::{path::Path, process::Command};
+use std::{net::TcpStream, path::Path, process::{Command, Stdio}, time::Duration};
 
 use arguments::IcpTestArgs;
 use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
+use reqwest::header::CONNECTION;
+
 
 fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
@@ -48,6 +50,66 @@ fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool
 
     Ok(false)
 }
+
+
+fn is_dfx_running() -> bool {
+    let connection = TcpStream::connect("127.0.0.1:4943");
+
+    if let Ok(connection) = connection {
+        let _ =  connection.shutdown(std::net::Shutdown::Both);
+        return false;
+    }
+
+    true
+}
+
+fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
+
+    // check dfx is installed
+    // ...
+
+    // check, if we have .dfx folder
+    let dfx_path = Path::new(".dfx");
+
+    if !dfx_path.exists() {
+
+        let dfx_running = is_dfx_running();
+
+        if !dfx_running {
+            println!("Starting dfx...");
+            let mut _dfx_process = Command::new("dfx")
+                .arg("start")
+                .arg("--background")
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn();
+    
+        }
+
+        // Give it some time to boot up
+        std::thread::sleep(Duration::from_secs(2));
+
+        println!("dfx canister create --all");
+        // create all canisters
+        let _status = Command::new("dfx").arg("canister").arg("create").arg("--all").status()?;
+
+        println!("dfx deps pull");
+        // dfx deps pull
+        let _status = Command::new("dfx").arg("deps").arg("pull").status()?;
+
+        println!("dfx build");
+        // dfx build
+        let _status = Command::new("dfx").arg("build").status()?;
+
+        if !dfx_running {
+            let _status = Command::new("dfx").arg("stop").status()?;
+        }
+    }
+
+
+    Ok(())
+}
+
 
 fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     // Generate files based on the setup prepared
@@ -122,6 +184,8 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 fn main() -> anyhow::Result<()> {
     env_logger::init();
     let args = IcpTestArgs::try_parse()?;
+
+    check_dfx_folder(&args)?;
 
     let mut setup = init_test_config(&args)?;
 

@@ -153,9 +153,11 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         arguments::Command::New { test_folder } => {
             setup.test_folder = test_folder.clone();
         }
+
         arguments::Command::Update { force } => {
             setup.forced = *force;
         }
+        
         arguments::Command::Add { command } => {
             // either add a canister or a contract to the setup
             match command {
