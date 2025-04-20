@@ -57,10 +57,10 @@ fn is_dfx_running() -> bool {
 
     if let Ok(connection) = connection {
         let _ =  connection.shutdown(std::net::Shutdown::Both);
-        return false;
+        return true;
     }
 
-    true
+    false
 }
 
 fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
@@ -102,6 +102,7 @@ fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
         let _status = Command::new("dfx").arg("build").status()?;
 
         if !dfx_running {
+            println!("Stoping dfx...");
             let _status = Command::new("dfx").arg("stop").status()?;
         }
     }
