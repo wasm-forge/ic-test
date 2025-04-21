@@ -138,7 +138,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             let test_folder = Path::new(&setup.test_folder);
 
             if test_folder.exists() {
-                let err_msg = format!("The test directory '{}' exists already, select a different test folder to avoid data loss.", test_folder.to_string_lossy().to_string());
+                let err_msg = format!("The test directory '{}' exists already, select a different test folder to avoid data loss.", test_folder.to_string_lossy());
                 error!("{err_msg}");
                 return Err(anyhow::anyhow!(err_msg));
             }
@@ -184,7 +184,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 
             // the test folder must exist already
             if !test_folder.exists() {
-                let err_msg = format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy().to_string());
+                let err_msg = format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy());
                 error!("{err_msg}");
                 return Err(anyhow::anyhow!(err_msg));
             }

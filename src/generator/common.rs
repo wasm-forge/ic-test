@@ -11,8 +11,7 @@ pub const FOUNDRY_TOML: &str = "foundry.toml";
 
 //
 pub fn get_home_dir() -> PathBuf {
-    let path = dirs::home_dir().expect("Home directory not found!");
-    path
+    dirs::home_dir().expect("Home directory not found!")
 }
 
 //
@@ -225,7 +224,7 @@ mod tests {
     fn relative_path_for_relative_input() {
         let target = Path::new("data/config.json");
 
-        let result = get_relative_path(&target).unwrap();
+        let result = get_relative_path(target).unwrap();
         assert_eq!(result, PathBuf::from("data/config.json"));
     }
 
@@ -234,7 +233,7 @@ mod tests {
         // Create a temp dir unrelated to home or project
         let unrelated_path = Path::new("/tmp/file.txt");
 
-        let result = get_relative_path(&unrelated_path);
+        let result = get_relative_path(unrelated_path);
 
         assert!(
             result.is_err(),
