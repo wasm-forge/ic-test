@@ -17,8 +17,9 @@ name = "ic-test"
 path = "src/generator/main.rs"
 
 [dependencies]
-clap = { version = "4.5.35", features = ["derive"] }
-anyhow = { version = "1.0.97", default-features = false }
+log = "0.4.27"
+clap = { version = "4.5.37", features = ["derive"] }
+anyhow = { version = "1.0.98", default-features = false }
 env_logger = "0.11.8"
 
 syn = "2.0"

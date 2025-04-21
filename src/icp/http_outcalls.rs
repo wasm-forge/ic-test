@@ -1,3 +1,4 @@
+use log::error;
 use pocket_ic::{
     common::rest::{
         CanisterHttpHeader, CanisterHttpMethod, CanisterHttpReply, CanisterHttpRequest,
@@ -27,7 +28,7 @@ pub async fn handle_http_outcalls(
                 let response = forward_http(request, anvil.to_string()).await;
                 pic.mock_canister_http_response(response).await;
             } else {
-                println!("MISSING {},", request.url);
+                error!("MISSING {},", request.url);
             }
         }
     }

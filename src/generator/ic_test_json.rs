@@ -157,17 +157,17 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         arguments::Command::Update { force } => {
             setup.forced = *force;
         }
-        
+
         arguments::Command::Add { command } => {
             // either add a canister or a contract to the setup
             match command {
                 arguments::AddCommand::Canister { name, wasm: _ } => {
-                    println!("Adding canister {name}");
+                    info!("Adding canister {name}");
 
                     todo!("Adding a canister is currently not supported. To add one manually, modify the ic-test.json file directly.");
                 }
                 arguments::AddCommand::Contract { name, sol_json } => {
-                    println!("Adding contract {name}");
+                    info!("Adding contract {name}");
                     add_contract(name, sol_json, &mut setup)?;
                 }
             }

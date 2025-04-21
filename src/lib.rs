@@ -14,10 +14,8 @@ mod dummy_evm;
 #[cfg(not(feature = "evm"))]
 use dummy_evm as evm;
 
-
 mod icp;
 pub use crate::evm::{Evm, EvmUser};
-
 
 pub use crate::{
     icp::caller::{CallBuilder, CallError, CallMode, Caller},
