@@ -1,18 +1,23 @@
 use std::{
-    env, fs::{self, read_to_string},
+    env,
+    fs::{self, read_to_string},
     path::{Path, PathBuf},
 };
 
 use anyhow::Error;
-use candid::{types::{Type, TypeInner}, Principal};
-use candid_parser::{grammar::IDLInitArgsParser, token::Tokenizer};
+use candid::{
+    types::{Type, TypeInner},
+    Principal,
+};
 use candid::{IDLArgs, TypeEnv};
 use candid_parser::parse_idl_args;
+use candid_parser::{grammar::IDLInitArgsParser, token::Tokenizer};
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
     common::{expand_path, get_path_relative_to_test_dir},
-    ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup}, type2json::type_to_json,
+    ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
+    type2json::type_to_json,
 };
 
 use askama::Template;
@@ -30,10 +35,7 @@ struct ModRsIcpEvmTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-
-
 pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<String, Error> {
-
     // try parse candid file
     let mut config = code_generator::Config::new();
 
@@ -41,9 +43,7 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
 
     config.set_service_name("ServiceName".to_owned());
 
-
-    let (env, actor) =
-    candid_parser::typing::pretty_check_file(Path::new(candid_path))?;    
+    let (env, actor) = candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
 
     // parse arguments
     let text_value = fs::read_to_string(Path::new(value_file))?;
@@ -54,9 +54,7 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
     let args: IDLArgs = parse_idl_args(&text_value)?;
 
     if let Some(a) = &actor {
-
         if let TypeInner::Class(a, _) = a.as_ref() {
-
             for t in a {
                 let json = type_to_json(t, &env);
                 let s = serde_json::to_string_pretty(&json).unwrap();
@@ -64,9 +62,7 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
                 fs::write("out.json", &s)?;
 
                 println!("{}", s);
-    
             }
-           
 
             // anotate types
             //let args2 = args.annotate_types(true, &env, a.as_slice())?;
@@ -74,18 +70,14 @@ pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<Stri
             //for arg in args2.args {
             //    println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
             //}
-
         }
-
     }
 
     //  content
     Ok("".to_owned())
 }
 
-
 pub fn generate_type(candid_path: &str) -> Result<(), Error> {
-
     // try parse candid file
     let mut config = code_generator::Config::new();
 
@@ -95,13 +87,11 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
 
     let canister_file = PathBuf::from("output.rs");
 
-    let (env, actor) =
-    candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
+    let (env, actor) = candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
 
     match &actor {
-        None => {},
+        None => {}
         Some(actor) => {
-
             let init_args = if let TypeInner::Class(args, _) = actor.as_ref() {
                 Some(args)
             } else {
@@ -110,7 +100,6 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
 
             if let Some(init) = init_args {
                 for v in init {
-
                     match v.as_ref() {
                         TypeInner::Var(name) => {
                             // get var type
@@ -119,14 +108,11 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
 
                             println!("{name}: {t:?},");
                             println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
-
-                        },
+                        }
                         _ => todo!(),
                     }
                 }
-
             }
-        
         }
     };
 
@@ -137,16 +123,20 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
+pub fn generate(setup: &mut IcpTestSetup) -> Result<(), Error> {
     // current folder
-    let bindings_path = env::current_dir()?.join(setup.test_folder.clone()).join("src/bindings");
+    let bindings_path = env::current_dir()?
+        .join(setup.test_folder.clone())
+        .join("src/bindings");
 
     fs::create_dir_all(&bindings_path)?;
 
     generate_mod_rs(setup, &bindings_path)?;
 
+    let test_folder = setup.test_folder.clone();
+
     // generate candid files for each canister
-    for (_canister_name, canister) in setup.icp_setup.canisters.iter() {
+    for (_canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
         if let Some(candid) = &canister.candid {
             // read candid
             let candid_path = expand_path(Path::new(&candid))?;
@@ -168,12 +158,16 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let mut path = PathBuf::new();
             path.push(canister.wasm.clone());
 
-            let path = get_path_relative_to_test_dir(path.as_path(), setup)?;
+            let path = get_path_relative_to_test_dir(path.as_path(), &test_folder)?;
 
             config.set_canister_wasm_path(path.to_string_lossy().to_string());
 
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
+
+            if let Some(actor) = &actor {
+                println!("actor = {actor:?}");
+            }
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
@@ -200,8 +194,9 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
         .map(|x| {
             let mut x = x.1.clone();
             let path = Path::new(&x.wasm);
-            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
+            println!("canister_setup: {:?}", x);
             x
         })
         .collect();
@@ -214,7 +209,7 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
             .map(|x| {
                 let mut x = x.1.clone();
                 let path = Path::new(&x.sol_json);
-                let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+                let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
                 x.sol_json = relative.to_string_lossy().to_string();
                 x
             })

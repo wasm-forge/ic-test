@@ -19,9 +19,8 @@ async fn setup(test: IcpTest) -> Env {
 
     let {{c.var_name}} = {{c.var_name}}::deploy(
         &icp_user,
-        // init args 
-        // ...
-    )
+{% for init_string in c.init_args %}        {{ c.var_name }}::{{init_string}},
+{% endfor %}    )
     .call()
     .await;
 {% endfor %}
@@ -44,5 +43,8 @@ async fn test_() {
 
     // Your test code
     // ...
+
+    // example calls
+    {% for c in canisters %}let result = {{ c.var_name }}::<method name>(todo!()).call().await;;{% endfor %}
 
 }

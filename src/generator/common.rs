@@ -11,8 +11,7 @@ pub const FOUNDRY_TOML: &str = "foundry.toml";
 
 //
 pub fn get_home_dir() -> PathBuf {
-    let path = dirs::home_dir().expect("Home directory not found!");
-    path
+    dirs::home_dir().expect("Home directory not found!")
 }
 
 //
@@ -76,11 +75,11 @@ pub fn expand_path(path: &Path) -> Result<PathBuf> {
 }
 
 // path prefix to get from the test folder to the target path
-pub fn get_path_relative_to_test_dir(target_path: &Path, setup: &IcpTestSetup) -> Result<PathBuf> {
+pub fn get_path_relative_to_test_dir(target_path: &Path, test_folder: &str) -> Result<PathBuf> {
     let mut ret = PathBuf::new();
 
     // for each test path part add ".."
-    for _ in setup.test_folder.trim().split("/") {
+    for _ in test_folder.trim().split("/") {
         ret.push("..");
     }
 
@@ -225,7 +224,7 @@ mod tests {
     fn relative_path_for_relative_input() {
         let target = Path::new("data/config.json");
 
-        let result = get_relative_path(&target).unwrap();
+        let result = get_relative_path(target).unwrap();
         assert_eq!(result, PathBuf::from("data/config.json"));
     }
 
@@ -234,7 +233,7 @@ mod tests {
         // Create a temp dir unrelated to home or project
         let unrelated_path = Path::new("/tmp/file.txt");
 
-        let result = get_relative_path(&unrelated_path);
+        let result = get_relative_path(unrelated_path);
 
         assert!(
             result.is_err(),

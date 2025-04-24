@@ -8,7 +8,12 @@ mod foundry_toml;
 mod ic_test_json;
 mod test_structure;
 
-use std::{path::Path, process::Command};
+use std::{
+    net::TcpStream,
+    path::Path,
+    process::{Command, Stdio},
+    time::Duration,
+};
 
 use arguments::IcpTestArgs;
 use candid_to_rust::{generate_candid_value, generate_type};
@@ -16,6 +21,7 @@ use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
+use log::{error, info};
 
 fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
@@ -51,6 +57,80 @@ fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool
     Ok(false)
 }
 
+fn is_dfx_running() -> bool {
+    let connection = TcpStream::connect("127.0.0.1:4943");
+
+    if let Ok(connection) = connection {
+        let _ = connection.shutdown(std::net::Shutdown::Both);
+        return true;
+    }
+
+    false
+}
+
+fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
+    // check, if we have .dfx folder
+    let dfx_path = Path::new(".dfx");
+
+    if !dfx_path.exists() {
+        // Check if dfx is installed
+        let dfx_check = Command::new("dfx")
+            .arg("--version")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+
+        match dfx_check {
+            Ok(status) if status.success() => {
+                info!("dfx is found");
+            }
+            _ => {
+                let err_msg = "dfx is not installed or not available in PATH";
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
+            }
+        }
+
+        let dfx_running = is_dfx_running();
+
+        if !dfx_running {
+            info!("Start dfx...");
+            let mut _dfx_process = Command::new("dfx")
+                .arg("start")
+                .arg("--background")
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn();
+        }
+
+        // Give it some time to boot up
+        std::thread::sleep(Duration::from_secs(2));
+
+        info!("exec: dfx canister create --all");
+        // create all canisters
+        let _status = Command::new("dfx")
+            .arg("canister")
+            .arg("create")
+            .arg("--all")
+            .status()?;
+
+        info!("exec: dfx deps pull");
+        // dfx deps pull
+        let _status = Command::new("dfx").arg("deps").arg("pull").status()?;
+
+        info!("exec: dfx build");
+        // dfx build
+        let _status = Command::new("dfx").arg("build").status()?;
+
+        if !dfx_running {
+            info!("Stop dfx...");
+            let _status = Command::new("dfx").arg("stop").status()?;
+        }
+    }
+
+    Ok(())
+}
+
 fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     // Generate files based on the setup prepared
 
@@ -60,23 +140,24 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             let test_folder = Path::new(&setup.test_folder);
 
             if test_folder.exists() {
-                return Err(anyhow::anyhow!(
-                    format!("The test directory '{}' exists already, select a different test folder to avoid data loss.", test_folder.to_string_lossy().to_string())
-                ));
+                let err_msg = format!("The test directory '{}' exists already, select a different test folder to avoid data loss.", test_folder.to_string_lossy());
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
             }
 
             let ic_test_json = Path::new(&args.ic_test_json);
             if ic_test_json.exists() {
-                return Err(anyhow::anyhow!(
-                    "The 'ic-test.json' was initialized already, use the 'ic-test update' command instead."
-                ));
+                let err_msg = "The 'ic-test.json' was initialized already, use the 'ic-test update' command instead.";
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
             }
 
             let root = get_main_project_dir()?.to_string_lossy().to_string();
             if has_uncommitted_changes(&root, setup)? {
-                return Err(anyhow::anyhow!(
-                    "Commit/reject any changes before calling 'ic-test new' to avoid data loss."
-                ));
+                let err_msg =
+                    "Commit/reject any changes before calling 'ic-test new' to avoid data loss.";
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
             }
 
             // init project using cargo
@@ -97,16 +178,17 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             // we want to avoid update if the ic-test.json is missing
             // (hence, we don't know if we can just regenerate on top of the test folder)
             if !ic_test_json.exists() {
-                return Err(anyhow::anyhow!(
-                    "The test ic-test.json was not initialized yet, use the 'new' command instead."
-                ));
+                let err_msg =
+                    "The test ic-test.json was not initialized yet, use the 'new' command instead.";
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
             }
 
             // the test folder must exist already
             if !test_folder.exists() {
-                return Err(anyhow::anyhow!(
-                    format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy().to_string())
-                ));
+                let err_msg = format!("The test directory '{}' does not exist in the project, use the 'new' command instead.", test_folder.to_string_lossy());
+                error!("{err_msg}");
+                return Err(anyhow::anyhow!(err_msg));
             }
         }
         arguments::Command::Add { command: _ } => {}
@@ -130,6 +212,8 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
     
     let args = IcpTestArgs::try_parse()?;
+
+    check_dfx_folder(&args)?;
 
     let mut setup = init_test_config(&args)?;
 
