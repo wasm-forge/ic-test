@@ -101,6 +101,7 @@ pub struct CanisterSetup {
     pub name: String,
     pub var_name: String,
     pub service_name: String,
+    pub init_args: Vec<String>,
     pub candid: Option<String>,
     pub wasm: String,
     pub specified_id: Option<String>,

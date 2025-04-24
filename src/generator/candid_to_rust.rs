@@ -27,7 +27,7 @@ struct ModRsIcpEvmTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
+pub fn generate(setup: &mut IcpTestSetup) -> Result<(), Error> {
     // current folder
     let mut bindings_path = env::current_dir()?;
     bindings_path.push(setup.test_folder.clone());
@@ -37,8 +37,10 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
 
     generate_mod_rs(setup, &bindings_path)?;
 
+    let test_folder = setup.test_folder.clone();
+
     // generate candid files for each canister
-    for (_canister_name, canister) in setup.icp_setup.canisters.iter() {
+    for (_canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
         if let Some(candid) = &canister.candid {
             // read candid
             let candid_path = expand_path(Path::new(&candid))?;
@@ -60,12 +62,16 @@ pub fn generate(setup: &IcpTestSetup) -> Result<(), Error> {
             let mut path = PathBuf::new();
             path.push(canister.wasm.clone());
 
-            let path = get_path_relative_to_test_dir(path.as_path(), setup)?;
+            let path = get_path_relative_to_test_dir(path.as_path(), &test_folder)?;
 
             config.set_canister_wasm_path(path.to_string_lossy().to_string());
 
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
+
+            if let Some(actor) = &actor {
+                println!("actor = {actor:?}");
+            }
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
@@ -92,8 +98,9 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
         .map(|x| {
             let mut x = x.1.clone();
             let path = Path::new(&x.wasm);
-            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
+            println!("canister_setup: {:?}", x);
             x
         })
         .collect();
@@ -106,7 +113,7 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
             .map(|x| {
                 let mut x = x.1.clone();
                 let path = Path::new(&x.sol_json);
-                let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+                let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
                 x.sol_json = relative.to_string_lossy().to_string();
                 x
             })

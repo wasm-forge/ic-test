@@ -49,6 +49,7 @@ pub fn add_canister(
 
     let mut canister_setup = CanisterSetup {
         name: canister_name.clone(),
+        init_args: Vec::new(),
         var_name: canister_name.to_case(Case::Snake),
         service_name: format!("{}Canister", canister_name).to_case(Case::Pascal),
         candid,

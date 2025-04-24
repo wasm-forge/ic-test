@@ -75,11 +75,11 @@ pub fn expand_path(path: &Path) -> Result<PathBuf> {
 }
 
 // path prefix to get from the test folder to the target path
-pub fn get_path_relative_to_test_dir(target_path: &Path, setup: &IcpTestSetup) -> Result<PathBuf> {
+pub fn get_path_relative_to_test_dir(target_path: &Path, test_folder: &str) -> Result<PathBuf> {
     let mut ret = PathBuf::new();
 
     // for each test path part add ".."
-    for _ in setup.test_folder.trim().split("/") {
+    for _ in test_folder.trim().split("/") {
         ret.push("..");
     }
 

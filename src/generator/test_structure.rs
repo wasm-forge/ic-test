@@ -82,7 +82,7 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
         .map(|x| {
             let mut x = x.1.clone();
             let path = Path::new(&x.wasm);
-            let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+            let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
             x
         })
@@ -96,7 +96,7 @@ pub fn generate(setup: &IcpTestSetup, is_update: bool) -> Result<(), Error> {
             .map(|x| {
                 let mut x = x.1.clone();
                 let path = Path::new(&x.sol_json);
-                let relative = get_path_relative_to_test_dir(path, setup).unwrap();
+                let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
                 x.sol_json = relative.to_string_lossy().to_string();
                 x
             })
