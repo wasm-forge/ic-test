@@ -3,10 +3,11 @@ mod candid_to_rust;
 mod common;
 mod dependencies;
 mod dfx_json;
-mod type2json;
 mod foundry_toml;
 mod ic_test_json;
+mod json2rust;
 mod test_structure;
+mod type2json;
 
 use std::{
     net::TcpStream,
@@ -16,7 +17,6 @@ use std::{
 };
 
 use arguments::IcpTestArgs;
-use candid_to_rust::{generate_candid_value, generate_type};
 use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
@@ -204,13 +204,19 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 }
 
 fn main() -> anyhow::Result<()> {
+    let s = type2json::generate_init_args_json("chain_fusion.did", "initArgument.did")?;
 
-    let s = generate_candid_value("chain_fusion.did", "initArgument.did")?;
+    for json in &s {
+        let s = serde_json::to_string_pretty(&json).unwrap();
+        std::fs::write("out.json", &s)?;
+        let s = json2rust::json_to_rust(json);
+        std::fs::write("out.rs", &s)?;
+    }
 
     return Ok(());
 
     env_logger::init();
-    
+
     let args = IcpTestArgs::try_parse()?;
 
     check_dfx_folder(&args)?;

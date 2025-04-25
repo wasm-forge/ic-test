@@ -1,7 +1,9 @@
 use std::{
     env,
     fs::{self, read_to_string},
+    io::Write,
     path::{Path, PathBuf},
+    process::{Command, Stdio},
 };
 
 use anyhow::Error;
@@ -12,6 +14,7 @@ use candid::{
 use candid::{IDLArgs, TypeEnv};
 use candid_parser::parse_idl_args;
 use candid_parser::{grammar::IDLInitArgsParser, token::Tokenizer};
+use serde_json::Value;
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
@@ -33,48 +36,6 @@ struct ModRsIcpTemplate<'a> {
 struct ModRsIcpEvmTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
     contracts: &'a Vec<ContractSetup>,
-}
-
-pub fn generate_candid_value(candid_path: &str, value_file: &str) -> Result<String, Error> {
-    // try parse candid file
-    let mut config = code_generator::Config::new();
-
-    config.set_target(code_generator::Target::Builder);
-
-    config.set_service_name("ServiceName".to_owned());
-
-    let (env, actor) = candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
-
-    // parse arguments
-    let text_value = fs::read_to_string(Path::new(value_file))?;
-
-    use candid::IDLArgs;
-    use candid_parser::parse_idl_args;
-
-    let args: IDLArgs = parse_idl_args(&text_value)?;
-
-    if let Some(a) = &actor {
-        if let TypeInner::Class(a, _) = a.as_ref() {
-            for t in a {
-                let json = type_to_json(t, &env);
-                let s = serde_json::to_string_pretty(&json).unwrap();
-
-                fs::write("out.json", &s)?;
-
-                println!("{}", s);
-            }
-
-            // anotate types
-            //let args2 = args.annotate_types(true, &env, a.as_slice())?;
-
-            //for arg in args2.args {
-            //    println!("value = {arg:?} \n...\n type={:?}", arg.value_ty());
-            //}
-        }
-    }
-
-    //  content
-    Ok("".to_owned())
 }
 
 pub fn generate_type(candid_path: &str) -> Result<(), Error> {
