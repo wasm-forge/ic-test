@@ -194,27 +194,18 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
         arguments::Command::Add { command: _ } => {}
     }
 
-    // generate folder structure
-    test_structure::generate(setup, true)?;
+    test_structure::generate_cargo_toml(setup)?;
 
-    // generate candid files
-    candid_to_rust::generate(setup)?;
+    test_structure::generate_lib_rs(setup)?;
+
+    candid_to_rust::generate_bindings(setup)?;
+
+    test_structure::generate_test_rs(setup)?;
 
     Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
-    let s = type2json::generate_init_args_json("chain_fusion.did", "initArgument.did")?;
-
-    for json in &s {
-        let s = serde_json::to_string_pretty(&json).unwrap();
-        std::fs::write("out.json", &s)?;
-        let s = json2rust::json_to_rust(json);
-        std::fs::write("out.rs", &s)?;
-    }
-
-    return Ok(());
-
     env_logger::init();
 
     let args = IcpTestArgs::try_parse()?;

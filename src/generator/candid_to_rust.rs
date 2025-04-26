@@ -1,26 +1,18 @@
 use std::{
     env,
-    fs::{self, read_to_string},
-    io::Write,
+    fs::{self},
     path::{Path, PathBuf},
-    process::{Command, Stdio},
 };
 
 use anyhow::Error;
-use candid::{
-    types::{Type, TypeInner},
-    Principal,
-};
-use candid::{IDLArgs, TypeEnv};
-use candid_parser::parse_idl_args;
-use candid_parser::{grammar::IDLInitArgsParser, token::Tokenizer};
-use serde_json::Value;
+use candid::{types::TypeInner, Principal};
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
     common::{expand_path, get_path_relative_to_test_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
-    type2json::type_to_json,
+    json2rust,
+    type2json::{self},
 };
 
 use askama::Template;
@@ -84,7 +76,7 @@ pub fn generate_type(candid_path: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn generate(setup: &mut IcpTestSetup) -> Result<(), Error> {
+pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
     // current folder
     let bindings_path = env::current_dir()?
         .join(setup.test_folder.clone())
@@ -126,9 +118,12 @@ pub fn generate(setup: &mut IcpTestSetup) -> Result<(), Error> {
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
 
-            if let Some(actor) = &actor {
-                println!("actor = {actor:?}");
-            }
+            let init_args_json =
+                type2json::generate_init_args_json(candid_path.as_path(), candid_path.as_path())?;
+
+            let init_args = json2rust::json_values_to_rust(init_args_json);
+
+            canister.init_args = init_args;
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
@@ -157,7 +152,6 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
             let path = Path::new(&x.wasm);
             let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
-            println!("canister_setup: {:?}", x);
             x
         })
         .collect();

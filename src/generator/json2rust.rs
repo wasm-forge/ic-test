@@ -1,16 +1,10 @@
 use std::{
     io::Write,
-    path::Path,
     process::{Command, Stdio},
 };
 
-use anyhow::Error;
-use candid::types::TypeInner;
-use pocket_ic::common;
+use convert_case::Casing;
 use serde_json::Value;
-use wf_cdk_bindgen::code_generator;
-
-use crate::type2json::type_to_json;
 
 fn format_rust_code(code: &str) -> std::io::Result<String> {
     let code = format!("fn m() {{\n{} \n}}", code);
@@ -59,11 +53,11 @@ fn helper(class_name: &str, def: &Value) -> String {
             format!("{class_name} {{\n{fields}\n}}")
         }
         Some("variant") => {
-            let default = def["default"].as_str().unwrap();
-            format!("{class_name}::{default}")
-        }
-        Some("var") => {
-            let default = def["default"].as_str().unwrap();
+            let default = def["default"]
+                .as_str()
+                .unwrap()
+                .to_case(convert_case::Case::Pascal);
+
             format!("{class_name}::{default}")
         }
         Some("text") => {
@@ -93,12 +87,28 @@ fn helper(class_name: &str, def: &Value) -> String {
     }
 }
 
-pub fn json_to_rust(schema: &Value) -> String {
-    let name = schema["type_name"].as_str().unwrap_or("");
-    let def = &schema["def"];
-    let rust = helper(name, def);
+fn json_to_rust(value: &Value) -> String {
+    let name = value["type_name"]
+        .as_str()
+        .unwrap_or("")
+        .to_case(convert_case::Case::Pascal);
 
-    let format = format_rust_code(&rust).expect("Incorrect rust code generated");
+    let def = &value["def"];
+    let rust_code = helper(&name, def);
 
-    format
+    //format_rust_code(&rust_code).expect("Incorrect rust code generated")
+
+    rust_code
+}
+
+pub fn json_values_to_rust(values: Vec<Value>) -> Vec<String> {
+    let mut result = Vec::new();
+
+    for json in &values {
+        //let pretty = serde_json::to_string_pretty(&json).unwrap();
+        let rust = json_to_rust(json);
+        result.push(rust);
+    }
+
+    result
 }

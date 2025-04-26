@@ -45,6 +45,6 @@ async fn test_() {
     // ...
 
     // example calls
-    {% for c in canisters %}let result = {{ c.var_name }}::<method name>(todo!()).call().await;;{% endfor %}
+    {% for c in canisters %}// let result = {{ c.var_name }}./*canister method name*/().call().await;;{% endfor %}
 
 }

@@ -1,13 +1,8 @@
 //! src/ty_json.rs
-use std::{
-    io::Write,
-    path::Path,
-    process::{Command, Stdio},
-};
+use std::path::Path;
 
 use anyhow::Error;
-use candid::types::{Field, Function, Label, SharedLabel, Type, TypeEnv, TypeInner};
-use candid_parser::typing::Env;
+use candid::types::{Field, Type, TypeEnv, TypeInner};
 use serde_json::{json, Value};
 use wf_cdk_bindgen::code_generator;
 
@@ -103,7 +98,10 @@ fn field_to_json(v: &TypeVis, f: &Field) -> Value {
     }
 }
 
-pub fn generate_init_args_json(candid_path: &str, value_file: &str) -> Result<Vec<Value>, Error> {
+pub fn generate_init_args_json(
+    candid_path: &Path,
+    candid_value_path: &Path,
+) -> Result<Vec<Value>, Error> {
     // try parse candid file
     let mut config = code_generator::Config::new();
 
@@ -111,7 +109,7 @@ pub fn generate_init_args_json(candid_path: &str, value_file: &str) -> Result<Ve
 
     config.set_service_name("ServiceName".to_owned());
 
-    let (env, actor) = candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
+    let (env, actor) = candid_parser::typing::pretty_check_file(candid_path)?;
 
     // concrete value example
 
