@@ -16,7 +16,7 @@ struct TypeVis<'a> {
     env: &'a TypeEnv,
 }
 
-impl<'a> TypeVis<'a> {
+impl TypeVis<'_> {
     fn visit(&self, ty: &Type) -> Value {
         match ty.0.as_ref() {
             TypeInner::Bool => json!({ "type": "bool", "default": "false" }),
@@ -39,7 +39,7 @@ impl<'a> TypeVis<'a> {
                     .env
                     .0
                     .get(name)
-                    .expect(&format!("Type '{name}' is undefined!"));
+                    .unwrap_or_else(|| panic!("Type '{name}' is undefined!"));
 
                 json!({ "type": "var", "type_name": name,
                     "def": self.visit(t)
@@ -100,7 +100,7 @@ fn field_to_json(v: &TypeVis, f: &Field) -> Value {
 
 pub fn generate_init_args_json(
     candid_path: &Path,
-    candid_value_path: &Path,
+    _candid_value_path: &Path,
 ) -> Result<Vec<Value>, Error> {
     // try parse candid file
     let mut config = code_generator::Config::new();

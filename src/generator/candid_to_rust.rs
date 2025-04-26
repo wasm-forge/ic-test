@@ -30,52 +30,6 @@ struct ModRsIcpEvmTemplate<'a> {
     contracts: &'a Vec<ContractSetup>,
 }
 
-pub fn generate_type(candid_path: &str) -> Result<(), Error> {
-    // try parse candid file
-    let mut config = code_generator::Config::new();
-
-    config.set_target(code_generator::Target::Builder);
-
-    config.set_service_name("ServiceName".to_owned());
-
-    let canister_file = PathBuf::from("output.rs");
-
-    let (env, actor) = candid_parser::typing::pretty_check_file(Path::new(candid_path))?;
-
-    match &actor {
-        None => {}
-        Some(actor) => {
-            let init_args = if let TypeInner::Class(args, _) = actor.as_ref() {
-                Some(args)
-            } else {
-                None
-            };
-
-            if let Some(init) = init_args {
-                for v in init {
-                    match v.as_ref() {
-                        TypeInner::Var(name) => {
-                            // get var type
-
-                            let t = env.0.get(name);
-
-                            println!("{name}: {t:?},");
-                            println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
-                        }
-                        _ => todo!(),
-                    }
-                }
-            }
-        }
-    };
-
-    let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
-
-    fs::write(&canister_file, content)?;
-
-    Ok(())
-}
-
 pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
     // current folder
     let bindings_path = env::current_dir()?

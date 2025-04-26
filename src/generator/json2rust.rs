@@ -6,7 +6,7 @@ use std::{
 use convert_case::Casing;
 use serde_json::Value;
 
-fn format_rust_code(code: &str) -> std::io::Result<String> {
+fn _format_rust_code(code: &str) -> std::io::Result<String> {
     let code = format!("fn m() {{\n{} \n}}", code);
 
     let mut child = Command::new("rustfmt")
@@ -94,11 +94,8 @@ fn json_to_rust(value: &Value) -> String {
         .to_case(convert_case::Case::Pascal);
 
     let def = &value["def"];
-    let rust_code = helper(&name, def);
 
-    //format_rust_code(&rust_code).expect("Incorrect rust code generated")
-
-    rust_code
+    helper(&name, def)
 }
 
 pub fn json_values_to_rust(values: Vec<Value>) -> Vec<String> {
