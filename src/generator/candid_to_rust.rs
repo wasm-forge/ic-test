@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Error;
-use candid::{types::TypeInner, Principal};
+use candid::Principal;
 use wf_cdk_bindgen::code_generator;
 
 use crate::{

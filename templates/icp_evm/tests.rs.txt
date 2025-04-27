@@ -13,15 +13,15 @@ use crate::bindings::{ {% for c in canisters %}
 };
 
 struct Env {
-    test: IcpTest,{% for c in canisters %}
+    icp_test: IcpTest,{% for c in canisters %}
     {{ c.var_name }}: {{c.service_name}},{% endfor %}{% for c in contracts %}
     {{ c.var_name }}: {{c.name}}Instance<(), EvmUser>,{% endfor %}
     evm_user: EvmUser,
 }
 
-async fn setup(test: IcpTest) -> Env {
-    let evm_user = test.evm.test_user(0);
-    let icp_user = test.icp.test_user(0);
+async fn setup(icp_test: IcpTest) -> Env {
+    let evm_user = icp_test.evm.test_user(0);
+    let icp_user = icp_test.icp.test_user(0);
 
 {% for c in canisters %}
 
@@ -37,7 +37,7 @@ async fn setup(test: IcpTest) -> Env {
     // ...
 
     Env {
-        test,
+        icp_test,
         evm_user,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}{% for c in contracts %}
         {{ c.var_name }},{% endfor %}
@@ -47,7 +47,7 @@ async fn setup(test: IcpTest) -> Env {
 #[tokio::test]
 async fn test_() {
     let Env {
-        test,
+        icp_test,
         evm_user,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}{% for c in contracts %}
         {{ c.var_name }},{% endfor %}
@@ -57,5 +57,5 @@ async fn test_() {
     // ...
 
     // example calls
-    {% for c in canisters %}// let result = {{ c.var_name }}./*canister method name*/().call().await;;{% endfor %}
+    {% for c in canisters %}// let result = {{ c.var_name }}./*canister method name*/().call().await;{% endfor %}
 }
