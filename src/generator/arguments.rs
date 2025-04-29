@@ -3,18 +3,18 @@ use clap::{Parser, Subcommand};
 #[derive(Subcommand, Debug)]
 pub enum AddCommand {
     Canister {
-        // Canister name
+        /// Canister name
         name: String,
 
-        // Path to .wasm or .wasm.gz file
+        /// Path to .wasm or .wasm.gz file
         #[arg(long)]
         wasm: Option<String>,
     },
     Contract {
-        // Contract name
+        /// Contract name
         name: String,
 
-        // Path to the solidity .json file
+        /// Path to the solidity .json file
         #[arg(long)]
         sol_json: Option<String>,
     },
@@ -22,17 +22,17 @@ pub enum AddCommand {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
-    // Initialize a new test project
+    /// Initialize a new test project
     New {
         #[arg(default_value_t = String::from("tests"))]
         test_folder: String,
     },
-    // Update the existing test project
+    /// Update the existing test project
     Update {
         #[arg(long, default_value = "false")]
         force: bool,
     },
-    // Add a canister or a contract
+    /// Add a canister or a contract
     Add {
         /// Choose what you want to add
         #[command(subcommand)]
@@ -43,18 +43,22 @@ pub enum Command {
 #[derive(Parser, Debug)]
 #[command(version, about=format!("IC Test framework V{}", env!("CARGO_PKG_VERSION")), long_about = None)]
 pub struct IcpTestArgs {
-    // Choose which action you want to perform
+    /// Choose which action you want to perform
     #[command(subcommand)]
     pub command: Command,
-    // Path to ic-test.json file
+    /// Path to ic-test.json file
     #[arg(long, default_value_t = String::from("ic-test.json"))]
     pub ic_test_json: String,
 
-    // Do not use dfx.json to gather information on the available canisters
+    /// Do not use dfx.json to gather information on the available canisters
     #[arg(long)]
     pub skip_dfx_json: Option<bool>,
 
-    // Do not use foundry.toml to gather information on the available contracts
+    /// Use interactive mode
+    #[arg(long)]
+    pub ui: Option<bool>,
+
+    /// Do not use foundry.toml to gather information on the available contracts
     #[arg(long)]
     pub skip_foundry_toml: Option<bool>,
 }

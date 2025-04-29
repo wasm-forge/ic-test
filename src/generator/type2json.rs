@@ -53,11 +53,14 @@ impl TypeVis<'_> {
             TypeInner::Record(fs) => {
                 json!({
                     "type": "record",
-                    "fields": fs.iter().map(|f| field_to_json(self, f)).collect::<Vec<_>>()
+                    "fields": fs.iter().map(|f| field_to_json(self, "field", f)).collect::<Vec<_>>()
                 })
             }
             TypeInner::Variant(fs) => {
-                let values = fs.iter().map(|f| f.id.to_string()).collect::<Vec<_>>();
+                let values = fs
+                    .iter()
+                    .map(|f| field_to_json(self, "enum value", f))
+                    .collect::<Vec<_>>();
 
                 json!({
                     "type": "variant",
@@ -66,36 +69,34 @@ impl TypeVis<'_> {
                 })
             }
 
-            TypeInner::Reserved => unimplemented!(),
-            TypeInner::Empty => unimplemented!(),
-            TypeInner::Future => unimplemented!(),
-            TypeInner::Null => unimplemented!(),
-            TypeInner::Knot(_id) => unimplemented!(),
-            TypeInner::Unknown => unimplemented!(),
-            TypeInner::Func(_fun) => unimplemented!(),
-            TypeInner::Service(_meths) => unimplemented!(),
-            TypeInner::Class(_tys, _ret) => unimplemented!(),
+            //
+            _ => json!({
+                "type": "",
+            }),
         }
     }
 }
 
-fn field_to_json(v: &TypeVis, f: &Field) -> Value {
+fn field_to_json(v: &TypeVis, field_type: &str, f: &Field) -> Value {
     let name = f.ty.to_string();
 
-    let t = v.env.0.get(&name);
+    let mut json = json!({
+        "field_name":   f.id.to_string(),
+        "type": json!(field_type),
+    });
 
-    if let Some(t) = t {
-        json!({
-            "field_name":   f.id.to_string(),
-            "type_name":         f.ty.to_string(),
-            "def":          v.visit(t),
-        })
-    } else {
-        json!({
-            "field_name":   f.id.to_string(),
-            "def":          v.visit(&f.ty),
-        })
+    if let Some(map) = json.as_object_mut() {
+        let t = v.env.0.get(&name);
+
+        if let Some(t) = t {
+            map.insert("type_name".to_string(), json!(f.ty.to_string()));
+            map.insert("def".to_string(), v.visit(t));
+        } else {
+            map.insert("def".to_string(), v.visit(&f.ty));
+        }
     }
+
+    json
 }
 
 pub fn generate_init_args_json(

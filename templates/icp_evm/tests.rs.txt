@@ -56,6 +56,6 @@ async fn test_() {
     // Your test code
     // ...
 
-    // example calls
-    {% for c in canisters %}// let result = {{ c.var_name }}./*canister method name*/().call().await;{% endfor %}
+    // example calls{% for c in canisters %}
+    // let result = {{ c.var_name }}./*canister method name*/().call().await;{% endfor %}
 }

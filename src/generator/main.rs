@@ -5,23 +5,20 @@ mod dependencies;
 mod dfx_json;
 mod foundry_toml;
 mod ic_test_json;
+mod interactive_setup;
 mod json2rust;
 mod test_structure;
 mod type2json;
 
-use std::{
-    net::TcpStream,
-    path::Path,
-    process::{Command, Stdio},
-    time::Duration,
-};
+use std::{net::TcpStream, path::Path, process::Stdio, time::Duration};
 
-use arguments::IcpTestArgs;
-use clap::Parser;
-use common::get_main_project_dir;
+use arguments::{Command::Update, IcpTestArgs};
+use common::{get_main_project_dir, get_test_project_dir};
+use dialoguer::{theme::ColorfulTheme, FuzzySelect, Input};
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
-use log::{error, info};
+use json2rust::json_values_to_rust;
+use log::{debug, error, info};
 
 fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
@@ -68,13 +65,48 @@ fn is_dfx_running() -> bool {
     false
 }
 
-fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
-    // check, if we have .dfx folder
-    let dfx_path = Path::new(".dfx");
+fn run_dfx_commands() -> Result<(), anyhow::Error> {
+    std::thread::sleep(Duration::from_secs(2));
+    info!("exec: dfx canister create --all");
+    let _status = std::process::Command::new("dfx")
+        .arg("canister")
+        .arg("create")
+        .arg("--all")
+        .status()?;
+    info!("exec: dfx deps pull");
+    let _status = std::process::Command::new("dfx")
+        .arg("deps")
+        .arg("pull")
+        .status()?;
+    info!("exec: dfx build");
+    let _status = std::process::Command::new("dfx").arg("build").status()?;
+    Ok(())
+}
 
-    if !dfx_path.exists() {
+fn check_dfx_folder(args: &IcpTestArgs) -> anyhow::Result<()> {
+    // check, if we have .dfx folder
+    let dfx_path = get_main_project_dir()?.join(".dfx");
+    let mut run_dfx_build = false;
+
+    if !dfx_path.exists() && args.ui == Some(true) {
+        let theme = ColorfulTheme::default();
+        let yes_no = vec!["yes", "no"];
+
+        let prompt =
+            "The .dfx folder is not present, do you want to attempt to run the 'dfx build' now?"
+                .to_string();
+
+        run_dfx_build = FuzzySelect::with_theme(&theme)
+            .with_prompt(prompt)
+            .items(&yes_no)
+            .default(0)
+            .interact_opt()?
+            == Some(0);
+    }
+
+    if !dfx_path.exists() && run_dfx_build {
         // Check if dfx is installed
-        let dfx_check = Command::new("dfx")
+        let dfx_check = std::process::Command::new("dfx")
             .arg("--version")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
@@ -85,7 +117,7 @@ fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
                 info!("dfx is found");
             }
             _ => {
-                let err_msg = "dfx is not installed or not available in PATH";
+                let err_msg = "dfx is not installed or not available in PATH!";
                 error!("{err_msg}");
                 return Err(anyhow::anyhow!(err_msg));
             }
@@ -94,38 +126,27 @@ fn check_dfx_folder(_args: &IcpTestArgs) -> anyhow::Result<()> {
         let dfx_running = is_dfx_running();
 
         if !dfx_running {
-            info!("Start dfx...");
-            let mut _dfx_process = Command::new("dfx")
+            info!("Starting dfx...");
+            let mut _dfx_process = std::process::Command::new("dfx")
                 .arg("start")
                 .arg("--background")
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .spawn();
+        } else {
+            info!("found dfx running!")
         }
 
-        // Give it some time to boot up
-        std::thread::sleep(Duration::from_secs(2));
-
-        info!("exec: dfx canister create --all");
-        // create all canisters
-        let _status = Command::new("dfx")
-            .arg("canister")
-            .arg("create")
-            .arg("--all")
-            .status()?;
-
-        info!("exec: dfx deps pull");
-        // dfx deps pull
-        let _status = Command::new("dfx").arg("deps").arg("pull").status()?;
-
-        info!("exec: dfx build");
-        // dfx build
-        let _status = Command::new("dfx").arg("build").status()?;
+        let res = run_dfx_commands();
 
         if !dfx_running {
-            info!("Stop dfx...");
-            let _status = Command::new("dfx").arg("stop").status()?;
+            info!("Stopping dfx...");
+            let _status = std::process::Command::new("dfx").arg("stop").status()?;
         }
+
+        res?;
+    } else {
+        debug!(".dfx was found")
     }
 
     Ok(())
@@ -161,7 +182,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             }
 
             // init project using cargo
-            let _status = Command::new("cargo")
+            let _status = std::process::Command::new("cargo")
                 .arg("new")
                 .arg(test_folder.to_string_lossy().to_string())
                 .arg("--lib")
@@ -200,23 +221,72 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 
     candid_to_rust::generate_bindings(setup)?;
 
+    let tests_rs = get_test_project_dir(setup)?.join("src").join("tests.rs");
+
+    // check if we are ok to overwrite the 'tests.rs' file if we are in "ui" mode and this is an update command
+    if args.ui == Some(true) && tests_rs.exists() {
+        if let Update { force: _ } = args.command {
+            let theme = ColorfulTheme::default();
+
+            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'tests.rs' file, type 'YES' to confirm:", setup.test_folder);
+
+            let answer: String = Input::with_theme(&theme)
+                .with_prompt(prompt)
+                .interact_text()?;
+
+            setup.forced = answer == "YES";
+        }
+    }
+
     test_structure::generate_test_rs(setup)?;
+
+    setup.is_complete = true;
+
+    Ok(())
+}
+
+fn _test() -> anyhow::Result<()> {
+    let candid_path = Path::new("tests/test3.did");
+    let init_args_json = type2json::generate_init_args_json(candid_path, candid_path)?;
+
+    for v in &init_args_json {
+        let pretty = serde_json::to_string_pretty(&v)?;
+        println!("{}", &pretty);
+    }
+
+    let init_args_rust = json_values_to_rust("prefix", init_args_json);
+
+    println!("{:?}", &init_args_rust);
 
     Ok(())
 }
 
 fn main() -> anyhow::Result<()> {
+    //return _test();
+
     env_logger::init();
 
-    let args = IcpTestArgs::try_parse()?;
+    let version = env!("CARGO_PKG_VERSION");
+    debug!("ic-test V{}", version);
+
+    let args = interactive_setup::interactive_arguments()?;
+
+    debug!("args: {:?}", args);
 
     check_dfx_folder(&args)?;
 
+    // initialize generator setup
     let mut setup = init_test_config(&args)?;
+
+    debug!("setup: {:?}", setup);
 
     process_arguments(&args, &mut setup)?;
 
     store_test_config(&args, &setup)?;
+
+    if setup.is_complete {
+        println!("Finished creating the test project.");
+    }
 
     Ok(())
 }

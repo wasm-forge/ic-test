@@ -86,6 +86,13 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
     if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
+            // skip frontend canisters
+            let skip_canister = canister_name.ends_with("frontend");
+
+            if skip_canister {
+                continue;
+            }
+
             add_canister(canister_name, canister, setup)?;
         }
     }

@@ -54,6 +54,9 @@ pub struct IcpTestSetup {
     #[serde(skip)]
     pub regenerate_cargo: bool,
 
+    #[serde(skip)]
+    pub is_complete: bool,
+
     // ICP settings
     pub icp_setup: IcpSetup,
 
@@ -92,6 +95,7 @@ impl Default for IcpTestSetup {
             regenerate_cargo: false,
             icp_setup: IcpSetup::default(),
             evm_setup: None,
+            is_complete: false,
         }
     }
 }

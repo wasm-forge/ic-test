@@ -2,6 +2,7 @@ use std::{fs, path::Path};
 
 use anyhow::Error;
 use askama::Template;
+use log::info;
 
 use crate::{
     common::{get_path_relative_to_test_dir, get_test_project_dir},
@@ -85,13 +86,15 @@ pub fn generate_test_rs(setup: &IcpTestSetup) -> Result<(), Error> {
         template.render()?
     };
 
-    println!("{content}");
-
     let tests_rs = src_dir.join("tests.rs");
 
     if !tests_rs.exists() || setup.forced {
+        if tests_rs.exists() {
+            info!("Overwriting 'tests.rs'...")
+        }
+
         fs::write(tests_rs, content)
-            .unwrap_or_else(|_| panic!("Could not create the tests.rs file"));
+            .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
     }
 
     Ok(())

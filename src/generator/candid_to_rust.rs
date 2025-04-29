@@ -43,7 +43,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
     let test_folder = setup.test_folder.clone();
 
     // generate candid files for each canister
-    for (_canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
+    for (canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
         if let Some(candid) = &canister.candid {
             // read candid
             let candid_path = expand_path(Path::new(&candid))?;
@@ -75,7 +75,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             let init_args_json =
                 type2json::generate_init_args_json(candid_path.as_path(), candid_path.as_path())?;
 
-            let init_args = json2rust::json_values_to_rust(init_args_json);
+            let init_args = json2rust::json_values_to_rust(canister_name, init_args_json);
 
             canister.init_args = init_args;
 

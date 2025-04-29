@@ -18,6 +18,15 @@ pub fn get_home_dir() -> PathBuf {
 pub fn get_main_project_dir() -> Result<PathBuf> {
     // TODO: check if we need to return one of the parent folders
     let cur_dir = env::current_dir()?;
+
+    // the main project dir should contain Cargo.toml
+    let toml = cur_dir.join("Cargo.toml");
+    if !toml.is_file() {
+        return Err(anyhow::anyhow!(
+            "The main project directory containing 'Cargo.toml' was not found, please start the tool at the root folder of your project!",
+        ));
+    }
+
     Ok(cur_dir)
 }
 

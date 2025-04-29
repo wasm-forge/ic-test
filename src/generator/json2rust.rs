@@ -34,76 +34,95 @@ fn _format_rust_code(code: &str) -> std::io::Result<String> {
     Ok(lines.join("\n"))
 }
 
-fn helper(class_name: &str, def: &Value) -> String {
-    match def.get("type").and_then(|v| v.as_str()) {
+fn helper(prefix: &str, parent_class_name: &str, value: &Value) -> String {
+    match value.get("type").and_then(|v| v.as_str()) {
         Some("record") => {
-            let fields = def["fields"]
+            let fields = value["fields"]
                 .as_array()
                 .unwrap()
                 .iter()
                 .map(|field| {
                     let field_name = field["field_name"].as_str().unwrap();
-                    let field_type_name = field.get("type_name").and_then(|v| v.as_str());
+                    let field_type_name = field
+                        .get("type_name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or(field_name);
                     let field_def = &field["def"];
-                    let field_val = helper(field_type_name.unwrap_or(field_name), field_def);
+                    let field_val = helper(prefix, field_type_name, field_def);
                     format!("{field_name}: {field_val},")
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
-            format!("{class_name} {{\n{fields}\n}}")
+            format!("{prefix}::{parent_class_name} {{\n{fields}\n}}")
         }
         Some("variant") => {
-            let default = def["default"]
-                .as_str()
-                .unwrap()
-                .to_case(convert_case::Case::Pascal);
+            if let Some(default) = value.get("default") {
+                let default = helper(prefix, "", default);
 
-            format!("{class_name}::{default}")
+                format!("{prefix}::{parent_class_name}({default})")
+            } else {
+                format!("{prefix}::{parent_class_name}")
+            }
+        }
+        Some("opt") => {
+            let def = value.get("def");
+
+            if let Some(def) = def {
+                let val = helper(prefix, "", def);
+                format!("Some({})", val)
+            } else {
+                "None".to_string()
+            }
+        }
+        Some("var") => {
+            let type_name = value["type_name"].as_str().unwrap_or("").to_string();
+            let def = value.get("def");
+
+            if let Some(def) = def {
+                helper(prefix, &type_name, def)
+            } else {
+                type_name
+            }
         }
         Some("text") => {
-            let default = def.get("default").and_then(|v| v.as_str()).unwrap_or("");
+            let default = value.get("default").and_then(|v| v.as_str()).unwrap_or("");
             format!("\"{}\".to_string()", default)
         }
-        Some("int") => def.get("default").unwrap_or(&Value::from(0)).to_string(),
+        Some("int") => value.get("default").unwrap_or(&Value::from(0)).to_string(),
         Some("vec") => {
             let empty_value = Value::Array(vec![]);
-            let default = def.get("default").unwrap_or(&empty_value);
+            let default = value.get("default").unwrap_or(&empty_value);
 
             if default.as_array().map(|a| a.is_empty()).unwrap_or(true) {
                 "vec![]".to_string()
             } else {
-                let inner_def = &def["def"];
+                let inner_def = &value["def"];
                 let elements = default
                     .as_array()
                     .unwrap()
                     .iter()
-                    .map(|v| helper(class_name, inner_def))
+                    .map(|_v| helper(prefix, parent_class_name, inner_def))
                     .collect::<Vec<_>>()
                     .join(", ");
                 format!("vec![{elements}]")
             }
         }
-        _ => "/* unsupported */".to_string(),
+        Some(t) => {
+            format!("/* some {t} */")
+        }
+        None => "None".to_string(),
     }
 }
 
-fn json_to_rust(value: &Value) -> String {
-    let name = value["type_name"]
-        .as_str()
-        .unwrap_or("")
-        .to_case(convert_case::Case::Pascal);
-
-    let def = &value["def"];
-
-    helper(&name, def)
+fn json_to_rust(prefix: &str, value: &Value) -> String {
+    helper(prefix, "", value)
 }
 
-pub fn json_values_to_rust(values: Vec<Value>) -> Vec<String> {
+pub fn json_values_to_rust(prefix: &str, values: Vec<Value>) -> Vec<String> {
     let mut result = Vec::new();
 
     for json in &values {
-        //let pretty = serde_json::to_string_pretty(&json).unwrap();
-        let rust = json_to_rust(json);
+        let rust = json_to_rust(prefix, json);
         result.push(rust);
     }
 
