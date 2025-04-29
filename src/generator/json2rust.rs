@@ -3,7 +3,6 @@ use std::{
     process::{Command, Stdio},
 };
 
-use convert_case::Casing;
 use serde_json::Value;
 
 fn _format_rust_code(code: &str) -> std::io::Result<String> {
