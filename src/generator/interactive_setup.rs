@@ -48,7 +48,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
 
             let create_test_project = FuzzySelect::with_theme(&theme)
                 .with_prompt(format!(
-                    "Welcome to IC Test framework V{version}.\nThe project searches for the .wasm and .did files inside the .dfx folder. For the best result make sure the project is fully compiled and built using 'dfx build' or other custom build script.\n\nDo you want to create a new canister test project now?"),
+                    "Welcome to IC Test framework V{version}!\n\nThe project searches for the .wasm and .did files inside the .dfx folder.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to create a new canister test project now?"),
                 )
                 .items(&yes_no)
                 .default(0)

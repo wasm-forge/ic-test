@@ -45,7 +45,16 @@ pub fn add_canister(
 ) -> Result<(), anyhow::Error> {
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 
-    let wasm = find_wasm(canister_name, canister, setup)?;
+    let res = find_wasm(canister_name, canister, setup);
+
+    let wasm = match res {
+        Ok(wasm) => wasm,
+        Err(_) => {
+            // try to rerun dfx build later on
+            setup.rerun_dfx_build = true;
+            return Ok(());
+        }
+    };
 
     let mut canister_setup = CanisterSetup {
         name: canister_name.clone(),

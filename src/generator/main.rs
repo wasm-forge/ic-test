@@ -104,42 +104,91 @@ fn check_dfx_folder(args: &IcpTestArgs) -> anyhow::Result<()> {
             == Some(0);
     }
 
-    if !dfx_path.exists() && run_dfx_build {
-        // Check if dfx is installed
-        let dfx_check = std::process::Command::new("dfx")
-            .arg("--version")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
-
-        match dfx_check {
-            Ok(status) if status.success() => {
-                info!("dfx is found");
-            }
-            _ => {
-                let err_msg = "dfx is not installed or not available in PATH!";
-                error!("{err_msg}");
-                return Err(anyhow::anyhow!(err_msg));
-            }
-        }
-
-        let dfx_running = is_dfx_running();
-
-        if !dfx_running {
-            info!("Starting dfx...");
-            let mut _dfx_process = std::process::Command::new("dfx")
-                .arg("start")
-                .arg("--background")
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .spawn();
-        } else {
-            info!("found dfx running!")
-        }
+    if run_dfx_build {
+        let dfx_was_running = start_dfx()?;
 
         let res = run_dfx_commands();
 
-        if !dfx_running {
+        if !dfx_was_running {
+            info!("Stopping dfx...");
+            let _status = std::process::Command::new("dfx").arg("stop").status()?;
+        }
+
+        res?;
+    } else {
+        debug!(".dfx was found")
+    }
+
+    Ok(())
+}
+
+fn start_dfx() -> anyhow::Result<bool> {
+    // Check if dfx is installed
+    let dfx_check = std::process::Command::new("dfx")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+
+    match dfx_check {
+        Ok(status) if status.success() => {
+            info!("dfx is found");
+        }
+
+        _ => {
+            let err_msg = "dfx is not installed or not available in PATH!";
+            error!("{err_msg}");
+            return Err(anyhow::anyhow!(err_msg));
+        }
+    }
+
+    let dfx_was_running = is_dfx_running();
+    if !dfx_was_running {
+        info!("Starting dfx...");
+        let mut _dfx_process = std::process::Command::new("dfx")
+            .arg("start")
+            .arg("--background")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+    } else {
+        info!("found dfx running!")
+    }
+
+    Ok(dfx_was_running)
+}
+
+fn check_dfx_folder_after_canister_search(
+    args: &IcpTestArgs,
+    setup: &mut IcpTestSetup,
+) -> anyhow::Result<()> {
+    // check, if we have .dfx folder
+    let mut run_dfx_build = false;
+
+    if setup.rerun_dfx_build && args.ui == Some(true) {
+        let theme = ColorfulTheme::default();
+        let yes_no = vec!["yes", "no"];
+
+        let prompt =
+            "Some of the canisters were not found in .dfx, do you want to attempt to run the 'dfx build' now?"
+                .to_string();
+
+        run_dfx_build = FuzzySelect::with_theme(&theme)
+            .with_prompt(prompt)
+            .items(&yes_no)
+            .default(0)
+            .interact_opt()?
+            == Some(0);
+
+        setup.rerun_dfx_build = true;
+    }
+
+    if run_dfx_build {
+        let dfx_was_running = start_dfx()?;
+
+        let res = run_dfx_commands();
+
+        if !dfx_was_running {
             info!("Stopping dfx...");
             let _status = std::process::Command::new("dfx").arg("stop").status()?;
         }
@@ -273,12 +322,19 @@ fn main() -> anyhow::Result<()> {
 
     debug!("args: {:?}", args);
 
+    // check if we want to run dfx build
     check_dfx_folder(&args)?;
 
     // initialize generator setup
     let mut setup = init_test_config(&args)?;
 
     debug!("setup: {:?}", setup);
+
+    // check if we still want to re-run dfx build
+    if setup.rerun_dfx_build {
+        check_dfx_folder_after_canister_search(&args, &mut setup)?;
+        setup = init_test_config(&args)?;
+    }
 
     process_arguments(&args, &mut setup)?;
 
