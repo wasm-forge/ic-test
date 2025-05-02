@@ -13,7 +13,9 @@ pub mod deployer;
 pub mod provider;
 pub mod user;
 
+#[cfg(feature = "evm")]
 pub(crate) mod http_outcalls;
+
 pub(crate) mod test_principals;
 
 pub struct Icp {

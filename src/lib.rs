@@ -1,20 +1,19 @@
+#[cfg(feature = "evm")]
+use icp::http_outcalls::handle_http_outcalls;
+#[cfg(feature = "evm")]
 use std::sync::Arc;
+#[cfg(feature = "evm")]
+use tokio::task;
 
 use candid::{decode_one, encode_one, CandidType};
-use icp::http_outcalls::handle_http_outcalls;
+
 use serde::Deserialize;
-use tokio::task;
+
+mod icp;
 
 #[cfg(feature = "evm")]
 mod evm;
-
-#[cfg(not(feature = "evm"))]
-mod dummy_evm;
-
-#[cfg(not(feature = "evm"))]
-use dummy_evm as evm;
-
-mod icp;
+#[cfg(feature = "evm")]
 pub use crate::evm::{Evm, EvmUser};
 
 pub use crate::{
@@ -26,6 +25,7 @@ pub use crate::{
 
 pub struct IcpTest {
     pub icp: Icp,
+    #[cfg(feature = "evm")]
     pub evm: Evm,
 }
 
@@ -33,10 +33,14 @@ impl IcpTest {
     pub async fn new() -> Self {
         let result = Self {
             icp: Icp::new().await,
+            #[cfg(feature = "evm")]
             evm: Evm::new(),
         };
 
+        #[cfg(feature = "evm")]
         let pic = Arc::downgrade(&result.icp.pic);
+
+        #[cfg(feature = "evm")]
         task::spawn(handle_http_outcalls(
             pic,
             result.evm.rpc_url(),
@@ -47,6 +51,7 @@ impl IcpTest {
 
     pub async fn tick(&self) {
         self.icp.tick().await;
+        #[cfg(feature = "evm")]
         self.evm.mine_block().await;
     }
 }
