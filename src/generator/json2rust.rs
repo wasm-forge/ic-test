@@ -5,34 +5,6 @@ use std::{
 
 use serde_json::Value;
 
-fn _format_rust_code(code: &str) -> std::io::Result<String> {
-    let code = format!("fn m() {{\n{} \n}}", code);
-
-    let mut child = Command::new("rustfmt")
-        .arg("--emit=stdout")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?;
-    {
-        let stdin = child.stdin.as_mut().unwrap();
-        stdin.write_all(code.as_bytes())?;
-    }
-
-    let output = child.wait_with_output()?;
-    let formatted = String::from_utf8_lossy(&output.stdout).to_string();
-
-    // now remove the first and the last line
-    let mut lines: Vec<&str> = formatted.lines().collect();
-    if lines.len() <= 2 {
-        return Ok("".to_owned());
-    }
-
-    lines.remove(0);
-    lines.pop();
-
-    Ok(lines.join("\n"))
-}
-
 fn helper(prefix: &str, parent_class_name: &str, value: &Value) -> String {
     match value.get("type").and_then(|v| v.as_str()) {
         Some("record") => {

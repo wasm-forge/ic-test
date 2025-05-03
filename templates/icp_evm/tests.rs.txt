@@ -23,6 +23,11 @@ async fn setup(icp_test: IcpTest) -> Env {
     let evm_user = icp_test.evm.test_user(0);
     let icp_user = icp_test.icp.test_user(0);
 
+    // initialize EVM contracts
+{% for c in contracts %}    let {{ c.var_name }} = {{ c.name }}::deploy(evm_user.clone()).await.unwrap();
+{% endfor %}
+
+    // initialize canisters
 {% for c in canisters %}
 
     let {{c.var_name}} = {{c.var_name}}::deploy(

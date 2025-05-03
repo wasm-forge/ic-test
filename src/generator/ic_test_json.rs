@@ -58,6 +58,9 @@ pub struct IcpTestSetup {
     pub is_complete: bool,
 
     #[serde(skip)]
+    pub tests_rs_regenerated: bool,
+
+    #[serde(skip)]
     pub rerun_dfx_build: bool,
 
     // ICP settings
@@ -100,6 +103,7 @@ impl Default for IcpTestSetup {
             evm_setup: None,
             is_complete: false,
             rerun_dfx_build: false,
+            tests_rs_regenerated: false,
         }
     }
 }

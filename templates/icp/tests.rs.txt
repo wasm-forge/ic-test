@@ -15,6 +15,7 @@ struct Env {
 async fn setup(icp_test: IcpTest) -> Env {
     let icp_user = icp_test.icp.test_user(0);
 
+    // initialize canisters
 {% for c in canisters %}
 
     let {{c.var_name}} = {{c.var_name}}::deploy(

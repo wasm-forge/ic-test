@@ -341,7 +341,15 @@ fn main() -> anyhow::Result<()> {
     store_test_config(&args, &setup)?;
 
     if setup.is_complete {
-        println!("Finished creating the test project.");
+        println!(
+            "Successfully generated test bindings in project '{}'.",
+            setup.test_folder
+        );
+        if setup.tests_rs_regenerated {
+            println!(
+                "A sample test file has been created: '{}/src/tests.rs'. You can modify this file and write your own tests.", setup.test_folder
+            );
+        }
     }
 
     Ok(())

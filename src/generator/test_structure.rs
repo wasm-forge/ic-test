@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs, io::Write, path::Path};
 
 use anyhow::Error;
 use askama::Template;
@@ -40,7 +40,7 @@ struct CargoTomlIcpEvmTemplate<'a> {
     ic_test_version: &'a String,
 }
 
-pub fn generate_test_rs(setup: &IcpTestSetup) -> Result<(), Error> {
+pub fn generate_test_rs(setup: &mut IcpTestSetup) -> Result<(), Error> {
     let project_dir = get_test_project_dir(setup)?;
 
     let mut src_dir = project_dir.clone();
@@ -56,6 +56,8 @@ pub fn generate_test_rs(setup: &IcpTestSetup) -> Result<(), Error> {
             let path = Path::new(&x.wasm);
             let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
+            x.init_args.clear();
+            x.init_args.push("todo!()".to_owned());
             x
         })
         .collect();
@@ -93,8 +95,12 @@ pub fn generate_test_rs(setup: &IcpTestSetup) -> Result<(), Error> {
             info!("Overwriting 'tests.rs'...")
         }
 
-        fs::write(tests_rs, content)
+        fs::write(&tests_rs, content)
             .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
+
+        let _output = std::process::Command::new("cargo").arg("fmt").output()?;
+
+        setup.tests_rs_regenerated = true;
     }
 
     Ok(())
