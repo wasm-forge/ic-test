@@ -9,10 +9,9 @@ use candid::Principal;
 use wf_cdk_bindgen::code_generator;
 
 use crate::{
+    candid_value_to_rust,
     common::{expand_path, get_path_relative_to_test_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
-    json2rust,
-    type2json::{self},
 };
 
 use askama::Template;
@@ -44,7 +43,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
     // generate candid files for each canister
     for (canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
-        if let Some(candid) = &canister.candid {
+        if let Some(candid) = &canister.candid_path {
             // read candid
             let candid_path = expand_path(Path::new(&candid))?;
 
@@ -72,12 +71,30 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
 
-            let init_args_json =
-                type2json::generate_init_args_json(candid_path.as_path(), candid_path.as_path())?;
+            let candid_value_string = if let Some(path) = canister.init_args_path.clone() {
+                let args = std::fs::read_to_string(path)?;
+                args
+            } else if let Some(args) = canister.init_args.clone() {
+                args
+            } else {
+                "".to_string()
+            };
 
-            let init_args = json2rust::json_values_to_rust(canister_name, init_args_json);
+            if !candid_value_string.trim().is_empty() {
+                let values = candid_parser::parse_idl_args(&candid_value_string)?;
 
-            canister.init_args = init_args;
+                // generate from candid_value
+                canister.init_args_rust = candid_value_to_rust::generate_init_values(
+                    canister_name,
+                    &env,
+                    &actor,
+                    &values.args,
+                );
+            } else {
+                // generate from candid type
+                canister.init_args_rust =
+                    candid_value_to_rust::generate_default_values(canister_name, &env, &actor);
+            }
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 

@@ -9,6 +9,9 @@ pub enum AddCommand {
         /// Path to .wasm or .wasm.gz file
         #[arg(long)]
         wasm: Option<String>,
+
+        /// Canister Initialization Arguments file
+        init_args_path: Option<String>,
     },
     Contract {
         /// Contract name

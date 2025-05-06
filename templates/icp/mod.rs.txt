@@ -10,7 +10,7 @@ type Deployer = ic_test::IcpUser;
 type DeployBuilder<C> = ic_test::DeployBuilder<C, Caller>;
 
 {% for c in canisters %}
-// candid: {{ c.candid.clone().unwrap_or("...".to_owned()) }}
+// candid: {{ c.candid_path.clone().unwrap_or("...".to_owned()) }}
 pub mod {{ c.var_name }};
 {% endfor %}
 

@@ -58,6 +58,9 @@ pub struct IcpTestSetup {
     pub is_complete: bool,
 
     #[serde(skip)]
+    pub ui: bool,
+
+    #[serde(skip)]
     pub tests_rs_regenerated: bool,
 
     #[serde(skip)]
@@ -104,6 +107,7 @@ impl Default for IcpTestSetup {
             is_complete: false,
             rerun_dfx_build: false,
             tests_rs_regenerated: false,
+            ui: false,
         }
     }
 }
@@ -115,9 +119,14 @@ pub struct CanisterSetup {
     pub service_name: String,
 
     #[serde(skip)]
-    pub init_args: Vec<String>,
+    pub init_args_rust: String,
 
-    pub candid: Option<String>,
+    pub candid_path: Option<String>,
+    pub init_args_path: Option<String>,
+    pub init_args: Option<String>,
+
+    pub generate_bindings: Option<bool>,
+
     pub wasm: String,
     pub specified_id: Option<String>,
 }
@@ -178,7 +187,11 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         arguments::Command::Add { command } => {
             // either add a canister or a contract to the setup
             match command {
-                arguments::AddCommand::Canister { name, wasm: _ } => {
+                arguments::AddCommand::Canister {
+                    name,
+                    wasm: _,
+                    init_args_path: _,
+                } => {
                     info!("Adding canister {name}");
 
                     todo!("Adding a canister is currently not supported. To add one manually, modify the ic-test.json file directly.");

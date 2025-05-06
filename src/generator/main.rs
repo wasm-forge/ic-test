@@ -1,23 +1,23 @@
 mod arguments;
 mod candid_to_rust;
+mod candid_value_to_rust;
 mod common;
 mod dependencies;
 mod dfx_json;
 mod foundry_toml;
 mod ic_test_json;
 mod interactive_setup;
-mod json2rust;
 mod test_structure;
-mod type2json;
 
 use std::{net::TcpStream, path::Path, process::Stdio, time::Duration};
 
 use arguments::{Command::Update, IcpTestArgs};
+use candid::IDLArgs;
+use candid_parser::{parse_idl_args, IDLProg};
 use common::{get_main_project_dir, get_test_project_dir};
 use dialoguer::{theme::ColorfulTheme, FuzzySelect, Input};
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
-use json2rust::json_values_to_rust;
 use log::{debug, error, info};
 
 fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
@@ -295,17 +295,23 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 }
 
 fn _test() -> anyhow::Result<()> {
-    let candid_path = Path::new("tests/test3.did");
-    let init_args_json = type2json::generate_init_args_json(candid_path, candid_path)?;
+    let candid_path = Path::new("tests/chain_fusion.did");
+    let candid_value_path = Path::new("tests/initArgument.did");
 
-    for v in &init_args_json {
-        let pretty = serde_json::to_string_pretty(&v)?;
-        println!("{}", &pretty);
-    }
+    let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
 
-    let init_args_rust = json_values_to_rust("prefix", init_args_json);
+    let candid_value = std::fs::read_to_string(candid_value_path)?;
 
-    println!("{:?}", &init_args_rust);
+    let arg_value = parse_idl_args(&candid_value)?;
+
+    //let init_args_rust = type2rust::generate_init_args_rust(candid_path, candid_value_path)?;
+
+    let rust =
+        candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, &arg_value.args);
+    println!("{}", rust);
+
+    let rust = candid_value_to_rust::generate_default_values("chain_fusion", &env, &actor);
+    println!("{}", rust);
 
     Ok(())
 }

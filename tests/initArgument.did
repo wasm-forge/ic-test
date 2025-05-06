@@ -26,4 +26,3 @@
     filter_events = vec { "NewJob(uint256)" };
   }
 )
-

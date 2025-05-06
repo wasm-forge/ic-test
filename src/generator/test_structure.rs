@@ -1,4 +1,4 @@
-use std::{fs, io::Write, path::Path};
+use std::{fs, path::Path};
 
 use anyhow::Error;
 use askama::Template;
@@ -56,8 +56,6 @@ pub fn generate_test_rs(setup: &mut IcpTestSetup) -> Result<(), Error> {
             let path = Path::new(&x.wasm);
             let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
             x.wasm = relative.to_string_lossy().to_string();
-            x.init_args.clear();
-            x.init_args.push("todo!()".to_owned());
             x
         })
         .collect();
@@ -98,7 +96,9 @@ pub fn generate_test_rs(setup: &mut IcpTestSetup) -> Result<(), Error> {
         fs::write(&tests_rs, content)
             .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
 
-        let _output = std::process::Command::new("cargo").arg("fmt").output()?;
+        let _output = std::process::Command::new("rustfmt")
+            .arg(tests_rs)
+            .output()?;
 
         setup.tests_rs_regenerated = true;
     }

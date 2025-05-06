@@ -41,6 +41,7 @@ pub struct DfxCanister {
 pub fn add_canister(
     canister_name: &String,
     canister: &DfxCanister,
+    generate_bindings: Option<bool>,
     setup: &mut IcpTestSetup,
 ) -> Result<(), anyhow::Error> {
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
@@ -58,12 +59,16 @@ pub fn add_canister(
 
     let mut canister_setup = CanisterSetup {
         name: canister_name.clone(),
-        init_args: Vec::new(),
+
+        init_args_rust: "".to_string(),
         var_name: canister_name.to_case(Case::Snake),
         service_name: format!("{}Canister", canister_name).to_case(Case::Pascal),
-        candid,
+        candid_path: candid,
         wasm,
         specified_id: None,
+        init_args_path: None,
+        init_args: None,
+        generate_bindings,
     };
 
     canister_setup.specified_id = canister.specified_id.clone();
@@ -96,14 +101,14 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if let Some(canisters) = &json.canisters {
         for (canister_name, canister) in canisters {
             // skip frontend canisters
-            let skip_canister = canister_name.ends_with("frontend");
+            let generate_bindings = !canister_name.ends_with("frontend");
 
-            if skip_canister {
-                continue;
-            }
-
-            add_canister(canister_name, canister, setup)?;
+            add_canister(canister_name, canister, Some(generate_bindings), setup)?;
         }
+    }
+
+    if setup.ui {
+        // list all the canisters and suggest which bindings to generate
     }
 
     Ok(())

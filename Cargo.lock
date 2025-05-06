@@ -2793,6 +2793,7 @@ dependencies = [
  "lazy_static",
  "log",
  "pocket-ic",
+ "pretty",
  "prettyplease",
  "quote",
  "regress",
