@@ -11,9 +11,9 @@ mod test_structure;
 
 use std::{net::TcpStream, path::Path, process::Stdio, time::Duration};
 
-use arguments::{Command::Update, IcpTestArgs};
-use common::{get_main_project_dir, get_test_project_dir};
-use dialoguer::{theme::ColorfulTheme, FuzzySelect, Input};
+use arguments::IcpTestArgs;
+use common::get_main_project_dir;
+use dialoguer::{theme::ColorfulTheme, FuzzySelect};
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
 use log::{debug, error, info};
@@ -87,16 +87,13 @@ fn check_dfx_folder(args: &IcpTestArgs) -> anyhow::Result<()> {
     let mut run_dfx_build = false;
 
     if !dfx_path.exists() && args.ui == Some(true) {
-        let theme = ColorfulTheme::default();
-        let yes_no = vec!["yes", "no"];
-
         let prompt =
             "The .dfx folder is not present, do you want to attempt to run the 'dfx build' now?"
                 .to_string();
 
-        run_dfx_build = FuzzySelect::with_theme(&theme)
+        run_dfx_build = FuzzySelect::with_theme(&ColorfulTheme::default())
             .with_prompt(prompt)
-            .items(&yes_no)
+            .items(&["yes", "no"])
             .default(0)
             .interact_opt()?
             == Some(0);
@@ -238,7 +235,10 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             // we only regenerate cargo when creating the test project
             setup.regenerate_cargo = true;
         }
-        arguments::Command::Update { force: _ } => {
+        arguments::Command::Update {
+            force: _,
+            command: _,
+        } => {
             let test_folder = Path::new(&setup.test_folder);
 
             let ic_test_json = Path::new(&args.ic_test_json);
@@ -268,24 +268,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 
     candid_to_rust::generate_bindings(setup)?;
 
-    let tests_rs = get_test_project_dir(setup)?.join("src").join("tests.rs");
-
-    // check if we are ok to overwrite the 'tests.rs' file if we are in "ui" mode and this is an update command
-    if args.ui == Some(true) && tests_rs.exists() {
-        if let Update { force: _ } = args.command {
-            let theme = ColorfulTheme::default();
-
-            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'tests.rs' file, type 'YES' to confirm:", setup.test_folder);
-
-            let answer: String = Input::with_theme(&theme)
-                .with_prompt(prompt)
-                .interact_text()?;
-
-            setup.forced = answer == "YES";
-        }
-    }
-
-    test_structure::generate_test_rs(setup)?;
+    test_structure::generate_test_rs(args, setup)?;
 
     setup.is_complete = true;
 

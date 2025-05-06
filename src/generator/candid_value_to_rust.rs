@@ -267,7 +267,7 @@ fn pp_init_arg<'a>(
             IDLValue::Bool(b) => RcDoc::text(format!("{}", b)),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
-        TypeInner::Principal => RcDoc::text("Principal"),
+        TypeInner::Principal => RcDoc::text(format!("Principal::from_text({arg_value})")),
         TypeInner::Nat8 => match arg_value {
             IDLValue::Nat8(v) => pp_number(*v as i128, "u8"),
             _ => pp_value_type_error_comment(arg_type, arg_value),
@@ -670,7 +670,8 @@ fn pp_default_record_fields<'a>(
         let tuple = concat(
             fields
                 .iter()
-                .map(|f| pp_default_arg(prefix, env, &f.ty, recs)),
+                //.map(|f| pp_default_arg(prefix, env, &f.ty, recs)),
+                .map(|_f| RcDoc::text("todo!()")),
             ",",
         );
 
@@ -688,12 +689,13 @@ fn pp_default_record_fields<'a>(
 }
 
 fn pp_default_record_field<'a>(
-    prefix: &'a str,
-    env: &'a TypeEnv,
+    _prefix: &'a str,
+    _env: &'a TypeEnv,
     field: &'a Field,
-    recs: &'a RecPoints,
+    _recs: &'a RecPoints,
 ) -> RcDoc<'a> {
     pp_label(&field.id, false, "")
-        .append(kwd(":"))
-        .append(pp_default_arg(prefix, env, &field.ty, recs))
+        .append(kwd(": "))
+        //.append(pp_default_arg(prefix, env, &field.ty, recs))
+        .append("todo!()")
 }

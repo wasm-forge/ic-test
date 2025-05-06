@@ -2,9 +2,11 @@ use std::{fs, path::Path};
 
 use anyhow::Error;
 use askama::Template;
+use dialoguer::{theme::ColorfulTheme, Input};
 use log::info;
 
 use crate::{
+    arguments::{Command, IcpTestArgs},
     common::{get_path_relative_to_test_dir, get_test_project_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
@@ -40,7 +42,29 @@ struct CargoTomlIcpEvmTemplate<'a> {
     ic_test_version: &'a String,
 }
 
-pub fn generate_test_rs(setup: &mut IcpTestSetup) -> Result<(), Error> {
+pub fn generate_test_rs(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> Result<(), Error> {
+    let tests_rs = get_test_project_dir(setup)?.join("src").join("tests.rs");
+
+    // check if we are ok to overwrite the 'tests.rs' file if we are in "ui" mode and this is an update command
+    if args.ui == Some(true) && tests_rs.exists() {
+        if let Command::Update {
+            force: _,
+            command: _,
+        } = &args.command
+        {
+            let theme = ColorfulTheme::default();
+
+            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'tests.rs' file, type 'YES' to confirm:", setup.test_folder);
+
+            let answer: String = Input::with_theme(&theme)
+                .with_prompt(prompt)
+                .allow_empty(true)
+                .interact_text()?;
+
+            setup.forced = answer == "YES";
+        }
+    }
+
     let project_dir = get_test_project_dir(setup)?;
 
     let mut src_dir = project_dir.clone();
@@ -51,6 +75,7 @@ pub fn generate_test_rs(setup: &mut IcpTestSetup) -> Result<(), Error> {
         .icp_setup
         .canisters
         .iter()
+        .filter(|x| x.1.generate_bindings)
         .map(|x| {
             let mut x = x.1.clone();
             let path = Path::new(&x.wasm);

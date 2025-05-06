@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Subcommand, Debug)]
 pub enum AddCommand {
+    /// Add canister
     Canister {
         /// Canister name
         name: String,
@@ -10,9 +11,37 @@ pub enum AddCommand {
         #[arg(long)]
         wasm: Option<String>,
 
-        /// Canister Initialization Arguments file
+        /// Path to a candid value file for canister initialization
+        #[arg(long)]
         init_args_path: Option<String>,
     },
+    /// Add contract
+    Contract {
+        /// Contract name
+        name: String,
+
+        /// Path to the solidity .json file
+        #[arg(long)]
+        sol_json: Option<String>,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum UpdateCommand {
+    /// Update canister
+    Canister {
+        /// Canister name
+        name: String,
+
+        /// Path to .wasm or .wasm.gz file
+        #[arg(long)]
+        wasm: Option<String>,
+
+        /// Path to a candid value file for canister initialization
+        #[arg(long)]
+        init_args_path: Option<String>,
+    },
+    /// Update contract
     Contract {
         /// Contract name
         name: String,
@@ -32,6 +61,9 @@ pub enum Command {
     },
     /// Update the existing test project
     Update {
+        #[command(subcommand)]
+        command: Option<UpdateCommand>,
+
         #[arg(long, default_value = "false")]
         force: bool,
     },

@@ -120,12 +120,13 @@ pub struct CanisterSetup {
 
     #[serde(skip)]
     pub init_args_rust: String,
-
     pub candid_path: Option<String>,
-    pub init_args_path: Option<String>,
-    pub init_args: Option<String>,
 
-    pub generate_bindings: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub init_args_path: Option<String>,
+
+    #[serde(default)]
+    pub generate_bindings: bool,
 
     pub wasm: String,
     pub specified_id: Option<String>,
@@ -160,6 +161,8 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         from_str::<IcpTestSetup>(&json_string)?
     };
 
+    setup.ui = args.ui == Some(true);
+
     if let Some(skip) = args.skip_dfx_json {
         setup.icp_setup.skip_dfx_json = skip;
     }
@@ -180,8 +183,40 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
             setup.test_folder = test_folder.clone();
         }
 
-        arguments::Command::Update { force } => {
+        arguments::Command::Update { force, command } => {
             setup.forced = *force;
+
+            if let Some(command) = command {
+                match command {
+                    arguments::UpdateCommand::Canister {
+                        name,
+                        wasm,
+                        init_args_path,
+                    } => {
+                        let canister = setup.icp_setup.canisters.get_mut(name);
+
+                        if let Some(canister) = canister {
+                            if let Some(init_args_path) = init_args_path {
+                                if init_args_path.is_empty() {
+                                    canister.init_args_path = None;
+                                } else {
+                                    canister.init_args_path = Some(init_args_path.clone());
+                                }
+                            }
+
+                            if let Some(wasm) = wasm {
+                                canister.wasm = wasm.clone();
+                            }
+                        } else {
+                            return Err(anyhow::anyhow!(format!("Canister '{}' not found!", name)));
+                        }
+                    }
+                    arguments::UpdateCommand::Contract {
+                        name: _,
+                        sol_json: _,
+                    } => {}
+                }
+            }
         }
 
         arguments::Command::Add { command } => {

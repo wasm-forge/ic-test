@@ -43,6 +43,10 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
     // generate candid files for each canister
     for (canister_name, canister) in setup.icp_setup.canisters.iter_mut() {
+        if !canister.generate_bindings {
+            continue;
+        }
+
         if let Some(candid) = &canister.candid_path {
             // read candid
             let candid_path = expand_path(Path::new(&candid))?;
@@ -73,8 +77,6 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
             let candid_value_string = if let Some(path) = canister.init_args_path.clone() {
                 std::fs::read_to_string(path)?
-            } else if let Some(args) = canister.init_args.clone() {
-                args
             } else {
                 "".to_string()
             };
@@ -117,6 +119,7 @@ fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Err
         .icp_setup
         .canisters
         .iter()
+        .filter(|x| x.1.generate_bindings)
         .map(|x| {
             let mut x = x.1.clone();
             let path = Path::new(&x.wasm);
