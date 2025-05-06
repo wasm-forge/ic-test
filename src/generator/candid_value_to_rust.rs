@@ -633,7 +633,7 @@ fn pp_default_arg<'a>(
             }
         }
         TypeInner::Variant(fields) => {
-            let mut field = fields.iter().next();
+            let field = fields.iter().next();
 
             if let Some(field) = field {
                 let id = field.clone().id.to_string().to_case(Case::Pascal);
@@ -653,7 +653,7 @@ fn pp_default_arg<'a>(
 
             //pp_init_variant_field(env, field.ty, variant_value, recs)
         }
-        TypeInner::Vec(ty) => RcDoc::text("vec![ todo!() ]"),
+        TypeInner::Vec(_ty) => RcDoc::text("vec![ todo!() ]"),
         TypeInner::Principal => RcDoc::text("Principal::from_text(todo!())"),
         TypeInner::Opt(ty) => enclose("Some(", pp_default_arg(prefix, env, ty, recs), ")"),
         _ => RcDoc::text("todo!()"),

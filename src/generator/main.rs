@@ -12,8 +12,6 @@ mod test_structure;
 use std::{net::TcpStream, path::Path, process::Stdio, time::Duration};
 
 use arguments::{Command::Update, IcpTestArgs};
-use candid::IDLArgs;
-use candid_parser::{parse_idl_args, IDLProg};
 use common::{get_main_project_dir, get_test_project_dir};
 use dialoguer::{theme::ColorfulTheme, FuzzySelect, Input};
 use git2::{Repository, Status, StatusOptions};

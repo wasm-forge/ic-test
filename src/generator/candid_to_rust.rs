@@ -72,8 +72,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
 
             let candid_value_string = if let Some(path) = canister.init_args_path.clone() {
-                let args = std::fs::read_to_string(path)?;
-                args
+                std::fs::read_to_string(path)?
             } else if let Some(args) = canister.init_args.clone() {
                 args
             } else {
