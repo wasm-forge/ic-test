@@ -300,7 +300,7 @@ fn _test() -> anyhow::Result<()> {
 
     let candid_value = std::fs::read_to_string(candid_value_path)?;
 
-    let arg_value = parse_idl_args(&candid_value)?;
+    let arg_value = candid_parser::parse_idl_args(&candid_value)?;
 
     //let init_args_rust = type2rust::generate_init_args_rust(candid_path, candid_value_path)?;
 
