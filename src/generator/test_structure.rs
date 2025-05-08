@@ -139,10 +139,12 @@ pub fn generate_test_setup_test_rs(
         }
 
         fs::write(&test_setup_rs, content)
-            .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
+            .unwrap_or_else(|_| panic!("Could not create the 'test_setup.rs' file"));
 
         let _output = std::process::Command::new("rustfmt")
-            .arg(test_setup_rs)
+            .arg(&test_setup_rs)
+            .arg("--edition")
+            .arg("2021")
             .output()?;
 
         setup.test_setup_rs_regenerated = true;
@@ -179,7 +181,9 @@ pub fn generate_test_setup_test_rs(
             .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
 
         let _output = std::process::Command::new("rustfmt")
-            .arg(tests_rs)
+            .arg(&tests_rs)
+            .arg("--edition")
+            .arg("2021")
             .output()?;
 
         setup.test_setup_rs_regenerated = true;
