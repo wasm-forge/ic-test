@@ -237,7 +237,11 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
         }
         arguments::Command::Update {
             force: _,
-            command: _,
+            name: _,
+            wasm: _,
+            init_arg_file: _,
+            init_arg: _,
+            sol_json: _,
         } => {
             let test_folder = Path::new(&setup.test_folder);
 
@@ -268,7 +272,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
 
     candid_to_rust::generate_bindings(setup)?;
 
-    test_structure::generate_test_rs(args, setup)?;
+    test_structure::generate_test_setup_test_rs(args, setup)?;
 
     setup.is_complete = true;
 
@@ -288,10 +292,10 @@ fn _test() -> anyhow::Result<()> {
     //let init_args_rust = type2rust::generate_init_args_rust(candid_path, candid_value_path)?;
 
     let rust =
-        candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, &arg_value.args);
+        candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, Some(&arg_value));
     println!("{}", rust);
 
-    let rust = candid_value_to_rust::generate_default_values("chain_fusion", &env, &actor);
+    let rust = candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, None);
     println!("{}", rust);
 
     Ok(())
@@ -332,9 +336,9 @@ fn main() -> anyhow::Result<()> {
             "Successfully generated test bindings in project '{}'.",
             setup.test_folder
         );
-        if setup.tests_rs_regenerated {
+        if setup.test_setup_rs_regenerated {
             println!(
-                "A sample test file has been created: '{}/src/tests.rs'. You can modify this file and write your own tests.", setup.test_folder
+                "A sample test file has been created: '{}/src/tests.rs'. You can modify this file to write your own tests.", setup.test_folder
             );
         }
     }

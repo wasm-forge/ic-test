@@ -34,7 +34,11 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     let mut command = if project_dir.join("ic-test.json").is_file() {
         arguments::Command::Update {
             force: false,
-            command: None,
+            name: Some("".to_string()),
+            wasm: None,
+            init_arg_file: None,
+            init_arg: None,
+            sol_json: None,
         }
     } else {
         arguments::Command::New {
@@ -80,10 +84,6 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
 
             command = crate::arguments::Command::New { test_folder };
         }
-        arguments::Command::Update {
-            force: _,
-            command: _,
-        } => {}
         _ => unimplemented!(),
     }
 

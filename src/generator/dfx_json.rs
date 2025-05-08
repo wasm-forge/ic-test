@@ -69,7 +69,8 @@ pub fn add_canister(
         candid_path: candid,
         wasm,
         specified_id: None,
-        init_args_path: None,
+        init_arg_file: canister.init_arg_file.clone(),
+        init_arg: canister.init_arg.clone(),
         generate_bindings,
     };
 
@@ -80,8 +81,8 @@ pub fn add_canister(
 
     if let Some(old_canister) = old_canister {
         // reuse old init value if not provided
-        if canister_setup.init_args_path.is_none() {
-            canister_setup.init_args_path = old_canister.init_args_path.clone();
+        if canister_setup.init_arg_file.is_none() {
+            canister_setup.init_arg_file = old_canister.init_arg_file.clone();
         }
     }
 

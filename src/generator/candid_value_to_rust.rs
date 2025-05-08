@@ -1,7 +1,7 @@
 use candid::pretty::utils::*;
-use candid::types::value::{IDLField, VariantValue};
+use candid::types::value::IDLField;
 use candid::types::{Field, Function, Label, SharedLabel, Type, TypeEnv, TypeInner};
-use candid::IDLValue;
+use candid::{IDLArgs, IDLValue};
 use candid_parser::bindings::analysis::{chase_actor, infer_rec};
 use convert_case::{Case, Casing};
 use pretty::RcDoc;
@@ -76,42 +76,6 @@ fn pp_label<'a>(id: &'a SharedLabel, is_variant: bool, vis: &'a str) -> RcDoc<'a
     }
 }
 
-fn _pp_init_variant_field<'a>(
-    prefix: &'a str,
-    env: &'a TypeEnv,
-    field: &'a Field,
-    variant_value: &'a VariantValue,
-    recs: &'a RecPoints,
-) -> RcDoc<'a> {
-    match field.ty.as_ref() {
-        TypeInner::Null => {
-            let value = variant_value.0.id.to_owned().to_string();
-            //let name = ident(&value, Some(Case::Pascal));
-
-            RcDoc::text("::").append(value.to_case(Case::Pascal))
-        }
-        TypeInner::Record(fs) => {
-            let value = &variant_value.0.val;
-
-            match value {
-                IDLValue::Record(idlfields) => {
-                    pp_init_record_fields(prefix, env, fs, idlfields, recs)
-                }
-                _ => RcDoc::text("todo!()"),
-            }
-        }
-        _ => {
-            let value = &variant_value.0.val;
-
-            pp_label(&field.id, true, "").append(enclose(
-                "(",
-                pp_init_arg(prefix, env, &field.ty, value, recs),
-                ")",
-            ))
-        }
-    }
-}
-
 fn pp_init_record_fields<'a>(
     prefix: &'a str,
     env: &'a TypeEnv,
@@ -121,10 +85,11 @@ fn pp_init_record_fields<'a>(
 ) -> RcDoc<'a> {
     if is_tuple(fields) {
         let tuple = concat(
-            fields
-                .iter()
-                .zip(field_values.iter())
-                .map(|(f, v)| pp_init_arg(prefix, env, &f.ty, &v.val, recs)),
+            fields.iter().enumerate().map(|(idx, f)| {
+                let v = field_values.get(idx).map(|x| &x.val);
+
+                pp_init_arg(prefix, env, &f.ty, v, recs)
+            }),
             ",",
         );
 
@@ -132,13 +97,12 @@ fn pp_init_record_fields<'a>(
     } else {
         let fields = concat(
             fields.iter().map(|f: &Field| {
-                // find the right field in field_values
-                let v = field_values.iter().find(|x: &&IDLField| *f.id == x.id);
+                let v = field_values
+                    .iter()
+                    .find(|x: &&IDLField| *f.id == x.id)
+                    .map(|x| &x.val);
 
-                match v {
-                    Some(field) => pp_init_record_field(prefix, env, f, &field.val, recs),
-                    None => RcDoc::nil(),
-                }
+                pp_init_record_field(prefix, env, f, v, recs)
             }),
             ",",
         );
@@ -151,7 +115,7 @@ fn pp_init_record_field<'a>(
     prefix: &'a str,
     env: &'a TypeEnv,
     field: &'a Field,
-    value: &'a IDLValue,
+    value: Option<&'a IDLValue>,
     recs: &'a RecPoints,
 ) -> RcDoc<'a> {
     pp_label(&field.id, false, "")
@@ -182,9 +146,15 @@ fn pp_init_arg<'a>(
     prefix: &'a str,
     env: &'a TypeEnv,
     arg_type: &'a Type,
-    arg_value: &'a IDLValue,
+    arg_value: Option<&'a IDLValue>,
     recs: &'a RecPoints,
 ) -> RcDoc<'a> {
+    let arg_value = if let Some(arg_value) = arg_value {
+        arg_value
+    } else {
+        return pp_default_arg(prefix, env, arg_type, recs);
+    };
+
     match arg_type.0.as_ref() {
         TypeInner::Record(fields) => {
             // we expect arg_value to be Record as well
@@ -204,7 +174,7 @@ fn pp_init_arg<'a>(
             if let Some(ty) = &ty {
                 let init = RcDoc::text(format!("{prefix}::"))
                     .append(name)
-                    .append(pp_init_arg(prefix, env, ty, arg_value, recs));
+                    .append(pp_init_arg(prefix, env, ty, Some(arg_value), recs));
 
                 if recs.contains(type_name.as_str()) {
                     RcDoc::text("Box::new").append(enclose("(", init, ")"))
@@ -230,12 +200,12 @@ fn pp_init_arg<'a>(
                         TypeInner::Null => res,
                         _ => res.append(enclose(
                             "(",
-                            pp_init_arg(prefix, env, &field.ty, &variant_value.0.val, recs),
+                            pp_init_arg(prefix, env, &field.ty, Some(&variant_value.0.val), recs),
                             ")",
                         )),
                     }
                 } else {
-                    RcDoc::text("todo!()")
+                    RcDoc::text(" todo!()")
                 }
 
                 //pp_init_variant_field(env, field.ty, variant_value, recs)
@@ -248,7 +218,7 @@ fn pp_init_arg<'a>(
                 concat(
                     idlvalues
                         .iter()
-                        .map(|v| pp_init_arg(prefix, env, ty, v, recs)),
+                        .map(|v| pp_init_arg(prefix, env, ty, Some(v), recs)),
                     ",",
                 ),
                 "]",
@@ -257,7 +227,12 @@ fn pp_init_arg<'a>(
         },
         TypeInner::Opt(ty) => match arg_value {
             IDLValue::Null | IDLValue::None => RcDoc::text("None"),
-            _ => enclose("Some(", pp_init_arg(prefix, env, ty, arg_value, recs), ")"),
+            IDLValue::Opt(opt_val) => enclose(
+                "Some(",
+                pp_init_arg(prefix, env, ty, Some(opt_val), recs),
+                ")",
+            ),
+            _ => RcDoc::text("Some(todo!())"),
         },
         TypeInner::Text => match arg_value {
             IDLValue::Text(v) => RcDoc::text(format!("\"{}\".to_string()", v)),
@@ -332,15 +307,15 @@ fn pp_init_arg<'a>(
 fn pp_init_args<'a>(
     prefix: &'a str,
     env: &'a TypeEnv,
-    arg_types: &'a Vec<&Type>,
-    arg_values: &'a [IDLValue],
+    types: &'a [&Type],
+    values: Option<&'a [IDLValue]>,
     recs: &'a RecPoints,
 ) -> RcDoc<'a> {
     concat(
-        arg_types
-            .iter()
-            .zip(arg_values.iter())
-            .map(|(t, v)| pp_init_arg(prefix, env, t, v, recs)),
+        types.iter().enumerate().map(|(idx, ty)| {
+            let v = values.and_then(|vals| vals.get(idx));
+            pp_init_arg(prefix, env, ty, v, recs)
+        }),
         ",",
     )
 }
@@ -538,10 +513,9 @@ pub fn generate_init_values(
     prefix: &str,
     env: &TypeEnv,
     actor: &Option<Type>,
-    values: &[IDLValue],
+    values: Option<&IDLArgs>,
 ) -> String {
     let (env, actor) = nominalize_all(env, actor);
-
     let def_list: Vec<_> = if let Some(actor) = &actor {
         chase_actor(&env, actor).unwrap()
     } else {
@@ -559,50 +533,16 @@ pub fn generate_init_values(
         }
     }
 
-    let defs = pp_init_args(prefix, &env, &args, values, &recs);
+    let defs = pp_init_args(
+        prefix,
+        &env,
+        &args,
+        values.map(|v| v.args.as_slice()),
+        &recs,
+    );
 
     let doc = RcDoc::line().append(defs);
     doc.pretty(LINE_WIDTH).to_string()
-}
-
-pub fn generate_default_values(prefix: &str, env: &TypeEnv, actor: &Option<Type>) -> String {
-    let (env, actor) = nominalize_all(env, actor);
-
-    let def_list: Vec<_> = if let Some(actor) = &actor {
-        chase_actor(&env, actor).unwrap()
-    } else {
-        env.0.iter().map(|pair| pair.0.as_ref()).collect()
-    };
-
-    let recs = infer_rec(&env, &def_list).unwrap();
-
-    let mut args = Vec::new();
-    if let Some(at) = &actor {
-        if let TypeInner::Class(init_args, _) = at.as_ref() {
-            for arg_type in init_args {
-                args.push(arg_type);
-            }
-        }
-    }
-
-    let defs = pp_default_args(prefix, &env, &args, &recs);
-
-    let doc = RcDoc::line().append(defs);
-    doc.pretty(LINE_WIDTH).to_string()
-}
-
-fn pp_default_args<'a>(
-    prefix: &'a str,
-    env: &'a TypeEnv,
-    arg_types: &'a Vec<&Type>,
-    recs: &'a RecPoints,
-) -> RcDoc<'a> {
-    concat(
-        arg_types
-            .iter()
-            .map(|t| pp_default_arg(prefix, env, t, recs)),
-        ",",
-    )
 }
 
 fn pp_default_arg<'a>(
@@ -632,30 +572,10 @@ fn pp_default_arg<'a>(
                 enclose("todo!() /* var type '", name, "' not found */")
             }
         }
-        TypeInner::Variant(fields) => {
-            let field = fields.iter().next();
-
-            if let Some(field) = field {
-                let id = field.clone().id.to_string().to_case(Case::Pascal);
-                let res = RcDoc::text("::").append(id);
-
-                match field.ty.0.as_ref() {
-                    TypeInner::Null => res,
-                    _ => res.append(enclose(
-                        "(",
-                        pp_default_arg(prefix, env, &field.ty, recs),
-                        ")",
-                    )),
-                }
-            } else {
-                RcDoc::text("todo!()")
-            }
-
-            //pp_init_variant_field(env, field.ty, variant_value, recs)
-        }
+        TypeInner::Variant(_fields) => RcDoc::text("todo!()"),
         TypeInner::Vec(_ty) => RcDoc::text("vec![ todo!() ]"),
         TypeInner::Principal => RcDoc::text("Principal::from_text(todo!())"),
-        TypeInner::Opt(ty) => enclose("Some(", pp_default_arg(prefix, env, ty, recs), ")"),
+        TypeInner::Opt(_ty) => RcDoc::text("None"),
         _ => RcDoc::text("todo!()"),
     }
 }

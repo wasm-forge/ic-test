@@ -7,37 +7,11 @@ use crate::bindings::{ {% for c in canisters %}
     {{ c.var_name }}::{self, {{c.service_name}}},{% endfor %}
 };
 
-struct Env {
-    icp_test: IcpTest,{% for c in canisters %}
-    {{ c.var_name }}: {{c.service_name}},{% endfor %}
-}
-
-async fn setup(icp_test: IcpTest) -> Env {
-    let icp_user = icp_test.icp.test_user(0);
-
-    // initialize canisters
-{% for c in canisters %}
-
-    let {{c.var_name}} = {{c.var_name}}::deploy(
-        &icp_user,
-        {{ c.init_args_rust }}
-    )
-    .call()
-    .await;
-{% endfor %}
-
-    // Additional setup steps
-    // ...
-
-    Env {
-        icp_test,{% for c in canisters %}
-        {{ c.var_name }},{% endfor %}
-    }
-}
+use crate::test_setup::{Env, setup};
 
 #[tokio::test]
 async fn test_() {
-    let Env {
+    let test_setup::Env {
         icp_test,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}
     } = setup(IcpTest::new().await).await;

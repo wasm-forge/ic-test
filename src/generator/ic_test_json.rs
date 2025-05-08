@@ -61,7 +61,7 @@ pub struct IcpTestSetup {
     pub ui: bool,
 
     #[serde(skip)]
-    pub tests_rs_regenerated: bool,
+    pub test_setup_rs_regenerated: bool,
 
     #[serde(skip)]
     pub rerun_dfx_build: bool,
@@ -106,7 +106,7 @@ impl Default for IcpTestSetup {
             evm_setup: None,
             is_complete: false,
             rerun_dfx_build: false,
-            tests_rs_regenerated: false,
+            test_setup_rs_regenerated: false,
             ui: false,
         }
     }
@@ -123,7 +123,9 @@ pub struct CanisterSetup {
     pub candid_path: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub init_args_path: Option<String>,
+    pub init_arg_file: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub init_arg: Option<String>,
 
     #[serde(default)]
     pub generate_bindings: bool,
@@ -183,38 +185,49 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
             setup.test_folder = test_folder.clone();
         }
 
-        arguments::Command::Update { force, command } => {
+        arguments::Command::Update {
+            force,
+            name,
+            wasm,
+            init_arg_file,
+            init_arg,
+            sol_json,
+        } => {
             setup.forced = *force;
 
-            if let Some(command) = command {
-                match command {
-                    arguments::UpdateCommand::Canister {
-                        name,
-                        wasm,
-                        init_args_path,
-                    } => {
-                        let canister = setup.icp_setup.canisters.get_mut(name);
+            if let Some(name) = name {
+                let canister = setup.icp_setup.canisters.get_mut(name);
 
-                        if let Some(canister) = canister {
-                            if let Some(init_args_path) = init_args_path {
-                                if init_args_path.is_empty() {
-                                    canister.init_args_path = None;
-                                } else {
-                                    canister.init_args_path = Some(init_args_path.clone());
-                                }
-                            }
-
-                            if let Some(wasm) = wasm {
-                                canister.wasm = wasm.clone();
-                            }
+                if let Some(canister) = canister {
+                    if let Some(init_arg_file) = init_arg_file {
+                        if init_arg_file.is_empty() {
+                            canister.init_arg_file = None;
                         } else {
-                            return Err(anyhow::anyhow!(format!("Canister '{}' not found!", name)));
+                            canister.init_arg_file = Some(init_arg_file.clone());
                         }
                     }
-                    arguments::UpdateCommand::Contract {
-                        name: _,
-                        sol_json: _,
-                    } => {}
+
+                    if let Some(init_arg) = init_arg {
+                        if init_arg.is_empty() {
+                            canister.init_arg_file = None;
+                        } else {
+                            canister.init_arg_file = Some(init_arg.clone());
+                        }
+                    }
+
+                    if let Some(wasm) = wasm {
+                        canister.wasm = wasm.clone();
+                    }
+                }
+
+                if let Some(evm_setup) = &mut setup.evm_setup {
+                    let contract = evm_setup.contracts.get_mut(name);
+
+                    if let Some(contract) = contract {
+                        if let Some(sol_json) = sol_json {
+                            contract.sol_json = sol_json.clone();
+                        }
+                    }
                 }
             }
         }
@@ -225,7 +238,8 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
                 arguments::AddCommand::Canister {
                     name,
                     wasm: _,
-                    init_args_path: _,
+                    init_arg_file: _,
+                    init_arg: _,
                 } => {
                     info!("Adding canister {name}");
 

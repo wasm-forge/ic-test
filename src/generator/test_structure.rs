@@ -16,6 +16,19 @@ use crate::{
 struct LibRsTemplate {}
 
 #[derive(Template)]
+#[template(path = "icp/test_setup.rs.txt")]
+struct TestSetupRsIcpTemplate<'a> {
+    canisters: &'a Vec<CanisterSetup>,
+}
+
+#[derive(Template)]
+#[template(path = "icp_evm/test_setup.rs.txt")]
+struct TestSetupRsIcpEvmTemplate<'a> {
+    canisters: &'a Vec<CanisterSetup>,
+    contracts: &'a Vec<ContractSetup>,
+}
+
+#[derive(Template)]
 #[template(path = "icp/tests.rs.txt")]
 struct TestsRsIcpTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
@@ -42,19 +55,30 @@ struct CargoTomlIcpEvmTemplate<'a> {
     ic_test_version: &'a String,
 }
 
-pub fn generate_test_rs(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> Result<(), Error> {
+pub fn generate_test_setup_test_rs(
+    args: &IcpTestArgs,
+    setup: &mut IcpTestSetup,
+) -> Result<(), Error> {
+    let test_setup_rs = get_test_project_dir(setup)?
+        .join("src")
+        .join("test_setup.rs");
+
     let tests_rs = get_test_project_dir(setup)?.join("src").join("tests.rs");
 
-    // check if we are ok to overwrite the 'tests.rs' file if we are in "ui" mode and this is an update command
-    if args.ui == Some(true) && tests_rs.exists() {
+    // check if we are ok to overwrite the 'test_setup.rs' file if we are in "ui" mode and this is an update command
+    if args.ui == Some(true) && test_setup_rs.exists() {
         if let Command::Update {
             force: _,
-            command: _,
+            name: _,
+            wasm: _,
+            init_arg_file: _,
+            init_arg: _,
+            sol_json: _,
         } = &args.command
         {
             let theme = ColorfulTheme::default();
 
-            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'tests.rs' file, type 'YES' to confirm:", setup.test_folder);
+            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'test_setup.rs' file, type 'YES' to confirm:", setup.test_folder);
 
             let answer: String = Input::with_theme(&theme)
                 .with_prompt(prompt)
@@ -66,9 +90,7 @@ pub fn generate_test_rs(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> Result<
     }
 
     let project_dir = get_test_project_dir(setup)?;
-
-    let mut src_dir = project_dir.clone();
-    src_dir.push("src");
+    let src_dir = project_dir.join("src");
     fs::create_dir_all(&src_dir)?;
 
     let canisters: Vec<CanisterSetup> = setup
@@ -85,38 +107,73 @@ pub fn generate_test_rs(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> Result<
         })
         .collect();
 
-    // generate test.rs
-    let content = if let Some(evm_setup) = &setup.evm_setup {
-        let contracts: Vec<ContractSetup> = evm_setup
-            .contracts
-            .iter()
-            .map(|x| {
-                let mut x = x.1.clone();
-                let path = Path::new(&x.sol_json);
-                let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
-                x.sol_json = relative.to_string_lossy().to_string();
-                x
-            })
-            .collect();
+    // generate test_setup.rs
+    if !test_setup_rs.exists() || setup.forced {
+        let content = if let Some(evm_setup) = &setup.evm_setup {
+            let contracts: Vec<ContractSetup> = evm_setup
+                .contracts
+                .iter()
+                .map(|x| {
+                    let mut x = x.1.clone();
+                    let path = Path::new(&x.sol_json);
+                    let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
+                    x.sol_json = relative.to_string_lossy().to_string();
+                    x
+                })
+                .collect();
 
-        let template = TestsRsIcpEvmTemplate {
-            canisters: &canisters,
-            contracts: &contracts,
+            let template = TestSetupRsIcpEvmTemplate {
+                canisters: &canisters,
+                contracts: &contracts,
+            };
+            template.render()?
+        } else {
+            let template = TestSetupRsIcpTemplate {
+                canisters: &canisters,
+            };
+            template.render()?
         };
-        template.render()?
-    } else {
-        let template = TestsRsIcpTemplate {
-            canisters: &canisters,
-        };
-        template.render()?
-    };
 
-    let tests_rs = src_dir.join("tests.rs");
-
-    if !tests_rs.exists() || setup.forced {
-        if tests_rs.exists() {
-            info!("Overwriting 'tests.rs'...")
+        if test_setup_rs.exists() {
+            info!("Overwriting 'test_setup.rs'...")
         }
+
+        fs::write(&test_setup_rs, content)
+            .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
+
+        let _output = std::process::Command::new("rustfmt")
+            .arg(test_setup_rs)
+            .output()?;
+
+        setup.test_setup_rs_regenerated = true;
+    }
+
+    // generate tests.rs
+    if !tests_rs.exists() {
+        let content = if let Some(evm_setup) = &setup.evm_setup {
+            let contracts: Vec<ContractSetup> = evm_setup
+                .contracts
+                .iter()
+                .map(|x| {
+                    let mut x = x.1.clone();
+                    let path = Path::new(&x.sol_json);
+                    let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
+                    x.sol_json = relative.to_string_lossy().to_string();
+                    x
+                })
+                .collect();
+
+            let template = TestsRsIcpEvmTemplate {
+                canisters: &canisters,
+                contracts: &contracts,
+            };
+            template.render()?
+        } else {
+            let template = TestsRsIcpTemplate {
+                canisters: &canisters,
+            };
+            template.render()?
+        };
 
         fs::write(&tests_rs, content)
             .unwrap_or_else(|_| panic!("Could not create the 'tests.rs' file"));
@@ -125,7 +182,7 @@ pub fn generate_test_rs(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> Result<
             .arg(tests_rs)
             .output()?;
 
-        setup.tests_rs_regenerated = true;
+        setup.test_setup_rs_regenerated = true;
     }
 
     Ok(())

@@ -75,27 +75,23 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(candid_path.as_path()).unwrap();
 
-            let candid_value_string = if let Some(path) = canister.init_args_path.clone() {
-                std::fs::read_to_string(path)?
+            let values = if let Some(values) = canister.init_arg.clone() {
+                Some(candid_parser::parse_idl_args(&values)?)
+            } else if let Some(path) = canister.init_arg_file.clone() {
+                Some(candid_parser::parse_idl_args(&std::fs::read_to_string(
+                    path,
+                )?)?)
             } else {
-                "".to_string()
+                None
             };
 
-            if !candid_value_string.trim().is_empty() {
-                let values = candid_parser::parse_idl_args(&candid_value_string)?;
-
-                // generate from candid_value
-                canister.init_args_rust = candid_value_to_rust::generate_init_values(
-                    canister_name,
-                    &env,
-                    &actor,
-                    &values.args,
-                );
-            } else {
-                // generate from candid type
-                canister.init_args_rust =
-                    candid_value_to_rust::generate_default_values(canister_name, &env, &actor);
-            }
+            // generate from candid_value
+            canister.init_args_rust = candid_value_to_rust::generate_init_values(
+                canister_name,
+                &env,
+                &actor,
+                values.as_ref(),
+            );
 
             let content = wf_cdk_bindgen::code_generator::compile(&config, &env, &actor);
 
