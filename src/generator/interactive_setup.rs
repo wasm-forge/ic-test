@@ -54,13 +54,13 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
             let version = env!("CARGO_PKG_VERSION");
 
             let create_test_project = FuzzySelect::with_theme(&theme)
-                .with_prompt(format!(
-                    "Welcome to IC Test framework V{version}!\n\nThe project searches for the .wasm and .did files inside the .dfx folder.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to create a new canister test project now?"),
-                )
-                .items(&yes_no)
-                .default(0)
-                .interact_opt()?
-                == Some(0);
+                            .with_prompt(format!(
+                                "Welcome to IC Test framework V{version}!\n\nThe project searches for the .wasm and .did files inside the .dfx folder.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to create a new canister the test project now?"),
+                            )
+                            .items(&yes_no)
+                            .default(0)
+                            .interact_opt()?
+                            == Some(0);
 
             if !create_test_project {
                 // return default help message
@@ -84,7 +84,32 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
 
             command = crate::arguments::Command::New { test_folder };
         }
-        _ => unimplemented!(),
+        arguments::Command::Update {
+            name: _,
+            wasm: _,
+            init_arg_file: _,
+            init_arg: _,
+            sol_json: _,
+            force: _,
+        } => {
+            let version = env!("CARGO_PKG_VERSION");
+
+            let regenerate = FuzzySelect::with_theme(&theme)
+                            .with_prompt(format!(
+                                "Welcome to IC Test framework V{version}!\n\nYou are about to regenerate you test project bindings.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to regenerate the bindings now?"),
+                            )
+                            .items(&yes_no)
+                            .default(0)
+                            .interact_opt()?
+                            == Some(0);
+
+            if !regenerate {
+                // return default help message
+                let result = IcpTestArgs::parse();
+                return Ok(result);
+            }
+        }
+        arguments::Command::Add { command: _ } => todo!(),
     }
 
     let ic_test_json = "ic-test.json".to_owned();

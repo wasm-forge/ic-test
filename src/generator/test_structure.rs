@@ -78,7 +78,7 @@ pub fn generate_test_setup_test_rs(
         {
             let theme = ColorfulTheme::default();
 
-            let prompt = format!("You are regenerating bindings in your test project '{}'.\nDo you also want to regenerate the existing 'test_setup.rs' file, type 'YES' to confirm:", setup.test_folder);
+            let prompt = "Do you also want to regenerate the existing 'test_setup.rs' file, type 'YES' to confirm:".to_string();
 
             let answer: String = Input::with_theme(&theme)
                 .with_prompt(prompt)
