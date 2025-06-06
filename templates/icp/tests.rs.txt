@@ -7,14 +7,14 @@ use crate::bindings::{ {% for c in canisters %}
     {{ c.var_name }}::{self, {{c.service_name}}},{% endfor %}
 };
 
-use crate::test_setup::{Env, setup};
+use crate::test_setup;
 
 #[tokio::test]
 async fn test_() {
     let test_setup::Env {
         icp_test,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}
-    } = setup(IcpTest::new().await).await;
+    } = test_setup::setup(IcpTest::new().await).await;
 
     // Your test code
     // ...

@@ -76,6 +76,7 @@ pub struct IcpTestArgs {
     /// Choose which action you want to perform
     #[command(subcommand)]
     pub command: Command,
+
     /// Path to ic-test.json file
     #[arg(long, default_value_t = String::from("ic-test.json"))]
     pub ic_test_json: String,

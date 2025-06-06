@@ -1,0 +1,10 @@
+type InitArg = record {
+  some_number1: nat64;
+  some_number2: nat64;
+  some_number3: nat64;
+  some_number4: int64;
+  some_number5: int64;
+  some_number6: int64;
+
+};
+service : (InitArg) -> { greet : () -> (opt text) query }

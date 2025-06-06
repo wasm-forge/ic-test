@@ -1,0 +1,12 @@
+(
+  record {
+
+    some_number1 = 123543: nat64;
+    some_number2 = 123456: nat;
+    some_number3 = 234567;
+    some_number4 = 345678: int64;
+    some_number5 = 345678: int;
+    some_number6 = 345678;
+
+  }
+)

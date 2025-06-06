@@ -64,27 +64,13 @@ pub fn get_relative_path(target_path: &Path) -> Result<PathBuf> {
     Ok(relative_path)
 }
 
-pub fn expand_path(path: &Path) -> Result<PathBuf> {
-    if path.starts_with("$HOME") {
-        let mut home: PathBuf = get_home_dir();
-        //... prepare path replacing $HOME with home
-        let iter = path.iter().skip(1);
-
-        for part in iter {
-            home.push(part)
-        }
-
-        return Ok(home);
-    }
-
-    let mut exp: PathBuf = PathBuf::new();
-    exp.push(path);
-
-    Ok(exp)
-}
-
 // path prefix to get from the test folder to the target path
 pub fn get_path_relative_to_test_dir(target_path: &Path, test_folder: &str) -> Result<PathBuf> {
+    if target_path.starts_with("$HOME") || target_path.starts_with("/") {
+        // do not try to process the absolute paths
+        return Ok(PathBuf::new().join(target_path));
+    }
+
     let mut ret = PathBuf::new();
 
     // for each test path part add ".."
@@ -191,33 +177,6 @@ pub fn find_wasm(
 mod tests {
     use super::*;
     use std::path::Path;
-
-    #[test]
-    fn expands_home_prefix() {
-        let input = Path::new("$HOME/projects/rust");
-        let expanded = expand_path(input).unwrap();
-
-        let mut expected = get_home_dir();
-        expected.push("projects/rust");
-
-        assert_eq!(expanded, expected);
-    }
-
-    #[test]
-    fn returns_path_unchanged_if_no_home() {
-        let input = Path::new("/usr/bin");
-        let expanded = expand_path(input).unwrap();
-
-        assert_eq!(expanded, PathBuf::from("/usr/bin"));
-    }
-
-    #[test]
-    fn handles_only_home_variable() {
-        let input = Path::new("$HOME");
-        let expanded = expand_path(input).unwrap();
-
-        assert_eq!(expanded, get_home_dir());
-    }
 
     #[test]
     fn relative_path_inside_project_dir() {

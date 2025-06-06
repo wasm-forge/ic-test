@@ -12,16 +12,16 @@ use crate::bindings::{ {% for c in canisters %}
     evm::{{ c.name }}::{self, {{c.name}}Instance},{% endfor %}
 };
 
-use crate::test_setup::{Env, setup};
+use crate::test_setup;
 
 #[tokio::test]
 async fn test_() {
-    let Env {
+    let test_setup::Env {
         icp_test,
         evm_user,{% for c in canisters %}
         {{ c.var_name }},{% endfor %}{% for c in contracts %}
         {{ c.var_name }},{% endfor %}
-    } = setup(IcpTest::new().await).await;
+    } = test_setup::setup(IcpTest::new().await).await;
 
     // Your test code
     // ...

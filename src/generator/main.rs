@@ -81,42 +81,6 @@ fn run_dfx_commands() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
-fn check_dfx_folder(args: &IcpTestArgs) -> anyhow::Result<()> {
-    // check, if we have .dfx folder
-    let dfx_path = get_main_project_dir()?.join(".dfx");
-    let mut run_dfx_build = false;
-
-    if !dfx_path.exists() && args.ui == Some(true) {
-        let prompt =
-            "The .dfx folder is not present, do you want to attempt to run the 'dfx build' now?"
-                .to_string();
-
-        run_dfx_build = FuzzySelect::with_theme(&ColorfulTheme::default())
-            .with_prompt(prompt)
-            .items(&["yes", "no"])
-            .default(0)
-            .interact_opt()?
-            == Some(0);
-    }
-
-    if run_dfx_build {
-        let dfx_was_running = start_dfx()?;
-
-        let res = run_dfx_commands();
-
-        if !dfx_was_running {
-            info!("Stopping dfx...");
-            let _status = std::process::Command::new("dfx").arg("stop").status()?;
-        }
-
-        res?;
-    } else {
-        debug!(".dfx was found")
-    }
-
-    Ok(())
-}
-
 fn start_dfx() -> anyhow::Result<bool> {
     // Check if dfx is installed
     let dfx_check = std::process::Command::new("dfx")
@@ -279,42 +243,14 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
     Ok(())
 }
 
-fn _test() -> anyhow::Result<()> {
-    let candid_path = Path::new("tests/chain_fusion.did");
-    let candid_value_path = Path::new("tests/initArgument.did");
-
-    let (env, actor) = candid_parser::typing::pretty_check_file(candid_path).unwrap();
-
-    let candid_value = std::fs::read_to_string(candid_value_path)?;
-
-    let arg_value = candid_parser::parse_idl_args(&candid_value)?;
-
-    //let init_args_rust = type2rust::generate_init_args_rust(candid_path, candid_value_path)?;
-
-    let rust =
-        candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, Some(&arg_value));
-    println!("{}", rust);
-
-    let rust = candid_value_to_rust::generate_init_values("chain_fusion", &env, &actor, None);
-    println!("{}", rust);
-
-    Ok(())
-}
-
 fn main() -> anyhow::Result<()> {
-    //return _test();
-
     env_logger::init();
 
     let version = env!("CARGO_PKG_VERSION");
     debug!("ic-test V{}", version);
 
     let args = interactive_setup::interactive_arguments()?;
-
     debug!("args: {:?}", args);
-
-    // check if we want to run dfx build
-    check_dfx_folder(&args)?;
 
     // initialize generator setup
     let mut setup = init_test_config(&args)?;

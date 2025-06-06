@@ -701,7 +701,7 @@ mod tests {
 
     #[test]
     fn basic_numeric_value_test() {
-        let rust = get_generated("tests/numbers_type.did", "tests/numbers_value.did");
+        let rust = get_generated("tests/type_numbers.did", "tests/value_numbers.did");
         assert!(!rust.contains("todo"));
     }
 }
