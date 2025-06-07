@@ -106,20 +106,13 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
         if setup.ui {
             // list all the canisters and suggest which ones to generate
-            let mut items: Vec<_> = setup
-                .icp_setup
-                .canisters
-                .iter()
-                .map(|(name, _canister)| name)
-                .collect();
-
-            items.sort();
+            let items: Vec<_> = setup.icp_setup.canisters.keys().collect();
 
             let defaults: Vec<_> = setup
                 .icp_setup
                 .canisters
-                .iter()
-                .map(|(_name, canister)| canister.generate_bindings)
+                .values()
+                .map(|canister| canister.generate_bindings)
                 .collect();
 
             if defaults.is_empty() {

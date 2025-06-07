@@ -6,7 +6,10 @@ use std::{
 use convert_case::{Case, Casing};
 use toml_edit::DocumentMut;
 
-use crate::ic_test_json::{ContractSetup, IcpTestSetup};
+use crate::{
+    common::FOUNDRY_TOML,
+    ic_test_json::{ContractSetup, IcpTestSetup},
+};
 
 fn get_toml_src(doc: &DocumentMut) -> Option<String> {
     doc.get("profile")?
@@ -37,7 +40,7 @@ pub fn add_contract(
             json.push(sol_json);
         } else {
             // try to find the implementation json
-            json.push(&evm_setup.foundry_out);
+            json.push(evm_setup.get_foundry_out());
             json.push(format!("{contract_name}.sol/{contract_name}.json"));
         };
 
@@ -66,8 +69,9 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
         if !evm_setup.skip_foundry_toml {
             use toml_edit::DocumentMut;
 
-            let toml = fs::read_to_string(crate::common::FOUNDRY_TOML)?;
+            let toml = fs::read_to_string(Path::new(&evm_setup.foundry_toml).join(FOUNDRY_TOML))?;
 
+            // paths are relative to the toml path
             let doc = toml
                 .parse::<DocumentMut>()
                 .expect("Failed to parse foundry.toml");
@@ -84,7 +88,7 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
         }
 
         // add all contracts from "src" to the setup
-        let path = Path::new(&evm_setup.foundry_src);
+        let path = &evm_setup.get_foundry_src();
         if path.is_dir() {
             for entry in fs::read_dir(path)? {
                 let entry = entry?;

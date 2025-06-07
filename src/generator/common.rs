@@ -173,6 +173,43 @@ pub fn find_wasm(
     )))
 }
 
+pub fn search_file_recursively(path: &Path, depth: u32, search_name: &str) -> Option<PathBuf> {
+    let path = Path::new(path);
+
+    let file = path.join(search_name);
+
+    if file.is_file() {
+        return Some(file);
+    }
+
+    if depth == 0 {
+        return None;
+    }
+
+    let entries = std::fs::read_dir(path).unwrap();
+
+    for entry in entries.filter_map(|entry| entry.ok()) {
+        let file_name = entry.file_name().to_string_lossy().to_string();
+        let cur_path = path.join(&file_name);
+
+        if file_name.starts_with(".") || file_name == "target" {
+            continue;
+        }
+
+        if !cur_path.is_dir() {
+            continue;
+        }
+
+        let found = search_file_recursively(&cur_path, depth - 1, search_name);
+
+        if found.is_some() {
+            return found;
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -207,5 +244,16 @@ mod tests {
             result.is_err(),
             "Expected error when path is outside home/project"
         );
+    }
+
+    #[test]
+    fn search_rec() {
+        let r = search_file_recursively(Path::new("."), 3, "main.rs");
+
+        assert!(r.is_some());
+
+        // check it doesn't search under target
+        let r = search_file_recursively(Path::new("."), 3, "ic-test.d");
+        assert!(r.is_none());
     }
 }
