@@ -10,7 +10,7 @@ use wf_cdk_bindgen::code_generator;
 
 use crate::{
     candid_value_to_rust,
-    common::get_path_relative_to_test_dir,
+    common::{expand_path, get_path_relative_to_test_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
 
@@ -70,7 +70,8 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             config.set_canister_wasm_path(path.to_string_lossy().to_string());
 
             let (env, actor) =
-                candid_parser::typing::pretty_check_file(Path::new(candid_path)).unwrap();
+                candid_parser::typing::pretty_check_file(&expand_path(Path::new(candid_path)))
+                    .unwrap();
 
             let values = if let Some(values) = canister.init_arg.clone() {
                 Some(candid_parser::parse_idl_args(&values)?)

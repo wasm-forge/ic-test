@@ -15,6 +15,20 @@ pub fn get_home_dir() -> PathBuf {
 }
 
 //
+pub fn expand_path(path: &Path) -> PathBuf {
+    let path_str = path.to_string_lossy();
+
+    let ret = if let Some(suffix) = path_str.strip_prefix("$HOME/") {
+        let home = get_home_dir();
+        home.join(suffix)
+    } else {
+        path.to_path_buf()
+    };
+
+    ret
+}
+
+//
 pub fn get_main_project_dir() -> Result<PathBuf> {
     // TODO: check if we need to return one of the parent folders
     let cur_dir = env::current_dir()?;
@@ -255,5 +269,12 @@ mod tests {
         // check it doesn't search under target
         let r = search_file_recursively(Path::new("."), 3, "ic-test.d");
         assert!(r.is_none());
+    }
+
+    #[test]
+    fn expand() {
+        let expanded = expand_path(Path::new("$HOME/test"));
+
+        println!("{expanded:?}");
     }
 }
