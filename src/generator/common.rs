@@ -23,7 +23,7 @@ pub fn get_main_project_dir() -> Result<PathBuf> {
     let toml = cur_dir.join("Cargo.toml");
     if !toml.is_file() {
         return Err(anyhow::anyhow!(
-            "The main project directory containing 'Cargo.toml' was not found, please start the tool at the root folder of your project!",
+            "The main project directory containing 'Cargo.toml' was not found. Please start the tool from the root folder of your project.",
         ));
     }
 
@@ -169,7 +169,7 @@ pub fn find_wasm(
     }
 
     Err(anyhow::anyhow!(format!(
-        "Wasm file for the canister {canister_name} was not found."
+        "The Wasm file for the canister '{canister_name}' was not found. Please ensure the project is fully built without errors, then try running ic-test again."
     )))
 }
 

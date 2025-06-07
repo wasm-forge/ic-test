@@ -1,10 +1,7 @@
-use std::{
-    sync::Arc,
-    time::{Duration, SystemTime},
-};
+use std::{sync::Arc, time::Duration};
 
 use candid::Principal;
-use pocket_ic::{nonblocking::PocketIc, PocketIcBuilder};
+use pocket_ic::{nonblocking::PocketIc, PocketIcBuilder, Time};
 use test_principals::TEST_PRINCIPALS;
 use user::IcpUser;
 
@@ -31,12 +28,9 @@ impl Icp {
             .build_async()
             .await;
 
-        pic.set_time(
-            SystemTime::UNIX_EPOCH
-                .checked_add(Duration::from_secs(1740000000))
-                .unwrap(),
-        )
-        .await;
+        let time = Time::from_nanos_since_unix_epoch(1_740_000_000_000_000_000);
+
+        pic.set_time(time).await;
 
         Self { pic: Arc::new(pic) }
     }

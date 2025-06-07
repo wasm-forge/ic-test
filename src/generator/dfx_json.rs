@@ -10,8 +10,6 @@ use crate::{
     ic_test_json::{CanisterSetup, IcpTestSetup},
 };
 
-use anyhow::anyhow;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DfxJson {
     pub canisters: Option<HashMap<String, DfxCanister>>,
@@ -49,16 +47,7 @@ pub fn add_canister(
 
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 
-    let res = find_wasm(canister_name, canister, setup);
-
-    let wasm = match res {
-        Ok(wasm) => wasm,
-        Err(_) => {
-            // try to rerun dfx build later on
-            setup.rerun_dfx_build = true;
-            return Ok(());
-        }
-    };
+    let wasm = find_wasm(canister_name, canister, setup)?;
 
     let mut canister_setup = CanisterSetup {
         name: canister_name.to_string(),
@@ -96,23 +85,21 @@ pub fn add_canister(
 
 // gather canister information from dfx.json
 pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
-    let dfx_json_path = Path::new(&setup.icp_setup.dfx_json);
-
-    if !(dfx_json_path.exists() || dfx_json_path.is_file()) {
-        return Err(anyhow!("'dfx.json' not found! Make sure you are starting the ic-test at the root of your canister project."));
-    }
-
     if setup.icp_setup.skip_dfx_json {
         return Ok(());
     }
 
     let dfx_json_path = Path::new(&setup.icp_setup.dfx_json);
-
     let json_string = fs::read_to_string(dfx_json_path)?;
-
     let json = from_str::<DfxJson>(&json_string)?;
 
     if let Some(canisters) = &json.canisters {
+        if canisters.is_empty() {
+            return Err(anyhow::anyhow!(
+                "No canisters were found in the 'dfx.json' file!"
+            ));
+        }
+
         for (canister_name, canister) in canisters {
             add_canister(canister_name, canister, setup)?;
         }
@@ -134,6 +121,12 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
                 .iter()
                 .map(|(_name, canister)| canister.generate_bindings)
                 .collect();
+
+            if defaults.is_empty() {
+                return Err(anyhow::anyhow!(
+                    "No canisters were found in the 'dfx.json' file!"
+                ));
+            }
 
             let selection = MultiSelect::with_theme(&ColorfulTheme::default())
                 .with_prompt("Which canister bindings do you want to generate?")

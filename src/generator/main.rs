@@ -9,14 +9,13 @@ mod ic_test_json;
 mod interactive_setup;
 mod test_structure;
 
-use std::{net::TcpStream, path::Path, process::Stdio, time::Duration};
+use std::path::Path;
 
 use arguments::IcpTestArgs;
 use common::get_main_project_dir;
-use dialoguer::{theme::ColorfulTheme, FuzzySelect};
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
-use log::{debug, error, info};
+use log::{debug, error};
 
 fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
     let repo = match Repository::open(repo_path) {
@@ -50,114 +49,6 @@ fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool
     }
 
     Ok(false)
-}
-
-fn is_dfx_running() -> bool {
-    let connection = TcpStream::connect("127.0.0.1:4943");
-
-    if let Ok(connection) = connection {
-        let _ = connection.shutdown(std::net::Shutdown::Both);
-        return true;
-    }
-
-    false
-}
-
-fn run_dfx_commands() -> Result<(), anyhow::Error> {
-    std::thread::sleep(Duration::from_secs(2));
-    info!("exec: dfx canister create --all");
-    let _status = std::process::Command::new("dfx")
-        .arg("canister")
-        .arg("create")
-        .arg("--all")
-        .status()?;
-    info!("exec: dfx deps pull");
-    let _status = std::process::Command::new("dfx")
-        .arg("deps")
-        .arg("pull")
-        .status()?;
-    info!("exec: dfx build");
-    let _status = std::process::Command::new("dfx").arg("build").status()?;
-    Ok(())
-}
-
-fn start_dfx() -> anyhow::Result<bool> {
-    // Check if dfx is installed
-    let dfx_check = std::process::Command::new("dfx")
-        .arg("--version")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
-
-    match dfx_check {
-        Ok(status) if status.success() => {
-            info!("dfx is found");
-        }
-
-        _ => {
-            let err_msg = "dfx is not installed or not available in PATH!";
-            error!("{err_msg}");
-            return Err(anyhow::anyhow!(err_msg));
-        }
-    }
-
-    let dfx_was_running = is_dfx_running();
-    if !dfx_was_running {
-        info!("Starting dfx...");
-        let mut _dfx_process = std::process::Command::new("dfx")
-            .arg("start")
-            .arg("--background")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn();
-    } else {
-        info!("found dfx running!")
-    }
-
-    Ok(dfx_was_running)
-}
-
-fn check_dfx_folder_after_canister_search(
-    args: &IcpTestArgs,
-    setup: &mut IcpTestSetup,
-) -> anyhow::Result<()> {
-    // check, if we have .dfx folder
-    let mut run_dfx_build = false;
-
-    if setup.rerun_dfx_build && args.ui == Some(true) {
-        let theme = ColorfulTheme::default();
-        let yes_no = vec!["yes", "no"];
-
-        let prompt =
-            "Some of the canisters were not found in .dfx, do you want to attempt to run the 'dfx build' now?"
-                .to_string();
-
-        run_dfx_build = FuzzySelect::with_theme(&theme)
-            .with_prompt(prompt)
-            .items(&yes_no)
-            .default(0)
-            .interact_opt()?
-            == Some(0);
-
-        setup.rerun_dfx_build = true;
-    }
-
-    if run_dfx_build {
-        let dfx_was_running = start_dfx()?;
-
-        let res = run_dfx_commands();
-
-        if !dfx_was_running {
-            info!("Stopping dfx...");
-            let _status = std::process::Command::new("dfx").arg("stop").status()?;
-        }
-
-        res?;
-    } else {
-        debug!(".dfx was found")
-    }
-
-    Ok(())
 }
 
 fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Result<()> {
@@ -256,12 +147,6 @@ fn main() -> anyhow::Result<()> {
     let mut setup = init_test_config(&args)?;
 
     debug!("setup: {:?}", setup);
-
-    // check if we still want to re-run dfx build
-    if setup.rerun_dfx_build {
-        check_dfx_folder_after_canister_search(&args, &mut setup)?;
-        setup = init_test_config(&args)?;
-    }
 
     process_arguments(&args, &mut setup)?;
 

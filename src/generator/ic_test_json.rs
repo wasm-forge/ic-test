@@ -1,9 +1,14 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
+use anyhow::Ok;
 use indexmap::IndexMap;
 use log::info;
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
+use walkdir::WalkDir;
 
 use crate::{
     arguments,
@@ -15,7 +20,7 @@ use super::arguments::IcpTestArgs;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EvmSetup {
-    // Path to foundry.toml file (default: "foundry.toml")
+    // Path to foundry.toml file (default: "")
     pub foundry_toml: String,
 
     // Do not use foundry.toml to collect information on the existing contracts
@@ -63,9 +68,6 @@ pub struct IcpTestSetup {
     #[serde(skip)]
     pub test_setup_rs_regenerated: bool,
 
-    #[serde(skip)]
-    pub rerun_dfx_build: bool,
-
     // ICP settings
     pub icp_setup: IcpSetup,
 
@@ -87,7 +89,7 @@ impl Default for IcpSetup {
 impl Default for EvmSetup {
     fn default() -> Self {
         Self {
-            foundry_toml: crate::common::FOUNDRY_TOML.to_string(),
+            foundry_toml: "".to_string(),
             foundry_src: "src".to_string(),
             foundry_out: "out".to_string(),
             skip_foundry_toml: false,
@@ -105,7 +107,6 @@ impl Default for IcpTestSetup {
             icp_setup: IcpSetup::default(),
             evm_setup: None,
             is_complete: false,
-            rerun_dfx_build: false,
             test_setup_rs_regenerated: false,
             ui: false,
         }
@@ -141,6 +142,30 @@ pub struct ContractSetup {
     pub sol_json: String,
 }
 
+fn is_valid_search_dir(entry: &walkdir::DirEntry) -> bool {
+    let file_name = entry.file_name().to_string_lossy();
+    entry.file_type().is_dir() && !file_name.starts_with('.') && file_name != "target"
+}
+
+fn search_foundry_toml() -> Option<PathBuf> {
+    for entry in WalkDir::new(".")
+        .max_depth(3)
+        .min_depth(0)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(is_valid_search_dir)
+    {
+        println!("checking folder {entry:?}");
+
+        let foundry_path = entry.path().join(crate::common::FOUNDRY_TOML);
+        if foundry_path.is_file() {
+            return Some(foundry_path);
+        }
+    }
+
+    None
+}
+
 pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
     let path = Path::new(&args.ic_test_json);
 
@@ -149,10 +174,17 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         let mut setup = IcpTestSetup::default();
 
         // we need to decide if we want to work with EVM, by default it depends on whether we can find the foundry.toml file
-        let foundry_toml = Path::new(crate::common::FOUNDRY_TOML);
+        let foundry_toml = search_foundry_toml();
 
-        if foundry_toml.exists() && foundry_toml.is_file() {
-            setup.evm_setup = Some(EvmSetup::default());
+        if let Some(f) = foundry_toml {
+            let evm = EvmSetup {
+                foundry_toml: f.to_string_lossy().to_string(),
+                ..EvmSetup::default()
+            };
+
+            println!("foundry.toml found: {}", evm.foundry_toml);
+
+            setup.evm_setup = Some(evm);
         }
 
         setup

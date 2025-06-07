@@ -1,4 +1,4 @@
-use ic_cdk::api::management_canister::main::{CanisterId, CanisterInstallMode, CanisterSettings};
+use ic_cdk::management_canister::{CanisterId, CanisterInstallMode, CanisterSettings};
 pub use pocket_ic::{ErrorCode, RejectCode, RejectResponse};
 
 use crate::convert;

@@ -19,7 +19,7 @@ fn check_test_folder(test_folder: &str, project_dir: &Path) -> Result<(), Error>
     Ok(())
 }
 
-fn check_dfx_json() -> anyhow::Result<()> {
+fn check_dfx_json_exists() -> anyhow::Result<()> {
     // check if dfx.json is found
     let dfx_json_path = Path::new("dfx.json");
 
@@ -40,7 +40,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     if argc > 1 {
         let result = IcpTestArgs::parse();
 
-        check_dfx_json()?;
+        check_dfx_json_exists()?;
 
         if args[1] == "new" && argc == 2 {
             // Special case: "new" command with no additional args — continue to UI mode
@@ -49,7 +49,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
         }
     }
 
-    check_dfx_json()?;
+    check_dfx_json_exists()?;
 
     let mut command = if project_dir.join("ic-test.json").is_file() {
         arguments::Command::Update {
@@ -75,7 +75,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
 
             let create_test_project = FuzzySelect::with_theme(&theme)
                             .with_prompt(format!(
-                                "Welcome to IC Test framework V{version}!\n\nThe project searches for the .wasm and .did files inside the .dfx folder.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to create a new canister the test project now?"),
+                                "Welcome to IC Test framework V{version}!\n\nThe project searches for the .wasm and .did files inside the .dfx folder.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to create a new canister test project now?"),
                             )
                             .items(&yes_no)
                             .default(0)
