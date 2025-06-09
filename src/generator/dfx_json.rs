@@ -43,7 +43,8 @@ pub fn add_canister(
     setup: &mut IcpTestSetup,
 ) -> Result<(), anyhow::Error> {
     // skip frontend canisters
-    let generate_bindings = !canister_name.ends_with("frontend");
+    let generate_bindings = canister.canister_type == Some("custom".to_string())
+        || canister.canister_type == Some("rust".to_string());
 
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 
@@ -117,7 +118,7 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
             if defaults.is_empty() {
                 return Err(anyhow::anyhow!(
-                    "No canisters were found in the 'dfx.json' file!"
+                    "No compatible canisters were found in the 'dfx.json' file!"
                 ));
             }
 
