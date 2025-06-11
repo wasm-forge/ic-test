@@ -1,3 +1,16 @@
+//! ## HTTP Outcall Handler for PocketIC
+//!
+//! This module supports forwarding HTTP outcalls made by canisters during tests
+//! in [`pocket-ic`] environments. It polls the in-memory HTTP queue of pending
+//! canister HTTP requests and responds to them either by:
+//!
+//! - Forwarding them to a real HTTP endpoint (e.g. an Ethereum JSON-RPC node via Anvil),
+//! - Or ignoring/unmocking them if not explicitly allowed.
+//!
+//! ### Usage
+//! This is intended to run in the background of your test setup. It ensures canisters
+//! under test can successfully resolve HTTP outcalls when using `canister_http`.
+
 use log::error;
 use pocket_ic::{
     common::rest::{
@@ -9,9 +22,35 @@ use pocket_ic::{
 use std::{sync::Weak, time::Duration};
 use tokio::time::sleep;
 
-/// This function run a loop that fetches pending HTTP outcalls from pocket-ic
-/// and handles them either by forward them to anvil or by replaying responses
-/// that were recorded by `record_http_responses` below.
+/// Spawns a polling loop to handle HTTP outcalls in [`PocketIc`] by forwarding
+/// matching requests to the given Anvil node, and mocking their response.
+///
+/// # Parameters
+///
+/// - `pocket_ic`: A weak reference to a running PocketIC instance.
+/// - `anvil`: The URL to which HTTP requests should be forwarded (e.g. Anvil's RPC endpoint).
+/// - `rpc_nodes`: A list of allowed URLs that the handler is authorized to forward.
+///
+/// # Behavior
+///
+/// - Every 50ms, checks for pending HTTP requests from the canister runtime.
+/// - Forwards matching requests to the Anvil URL and mocks the response.
+/// - Logs missing/mismatched URLs to stderr.
+///
+/// # Notes
+///
+/// - Only requests with exact URL matches in `rpc_nodes` are forwarded.
+/// - Unsupported URLs are logged and not answered (which may cause the test to block).
+///
+/// # Example
+///
+/// ```ignore
+/// tokio::spawn(handle_http_outcalls(
+///     Arc::downgrade(&pocket_ic),
+///     Url::parse("http://localhost:8545").unwrap(),
+///     vec!["http://localhost:8545".to_string()],
+/// ));
+/// ```
 pub async fn handle_http_outcalls(
     pocket_ic: Weak<PocketIc>,
     anvil: reqwest::Url,
@@ -34,6 +73,8 @@ pub async fn handle_http_outcalls(
     }
 }
 
+/// Forwards an HTTP request to the configured Anvil endpoint and wraps the result
+/// in a mock HTTP response that PocketIC can return to the canister.
 async fn forward_http(request: CanisterHttpRequest, url: String) -> MockCanisterHttpResponse {
     let client = reqwest::Client::new();
 
@@ -86,6 +127,7 @@ async fn forward_http(request: CanisterHttpRequest, url: String) -> MockCanister
     }
 }
 
+/// Converts a simple `(name, value)` tuple list into PocketIC's HTTP header format.
 fn strings_to_headers(hs: Vec<(String, String)>) -> Vec<CanisterHttpHeader> {
     hs.into_iter()
         .map(|(name, value)| CanisterHttpHeader { name, value })

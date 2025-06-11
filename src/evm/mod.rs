@@ -34,6 +34,7 @@ use alloy_node_bindings::{Anvil, AnvilInstance};
 use reqwest::Url;
 use serde_json::{json, value::RawValue};
 
+/// Represents a local Ethereum environment backed by an Anvil node.
 pub struct Evm {
     rpc_url: Url,
     anvil: AnvilInstance,
@@ -42,26 +43,35 @@ pub struct Evm {
 }
 
 impl Evm {
+    /// New Evm environment
     pub fn new() -> Self {
         Evm::default()
     }
 
+    /// HTTP RPC URL oif the Anvil instance
     pub fn rpc_url(&self) -> Url {
         self.rpc_url.clone()
     }
 
+    /// Chain id of the current Anvil instance
     pub fn chain_id(&self) -> u64 {
         self.anvil.chain_id()
     }
 
+    /// Number of test users
     pub fn test_user_count(&self) -> usize {
         self.anvil.addresses().len()
     }
 
+    /// Return the `SecretKey` for a test account at the given index.
+    ///
+    /// # Panics
+    /// Panics if the index is out of bounds.
     pub fn key(&self, index: usize) -> SecretKey<Secp256k1> {
         self.anvil.keys()[index].clone()
     }
 
+    /// Return a test user at a given index.
     pub fn test_user(&self, index: usize) -> EvmUser {
         if index >= self.test_user_count() {
             panic!(
@@ -75,6 +85,7 @@ impl Evm {
         )
     }
 
+    /// Construct or retrieve an `EvmUser` for a given address and key.
     pub fn user_from(&self, address: Address, key: SecretKey<Secp256k1>) -> EvmUser {
         let mut users = self.users.lock().unwrap();
         if let Some(user) = users.get(&address) {
@@ -93,10 +104,12 @@ impl Evm {
         user
     }
 
+    /// First test user
     pub fn default_user(&self) -> EvmUser {
         self.test_user(0)
     }
 
+    /// Send ETH from a user to another address.
     pub async fn transfer(&self, user: &EvmUser, to: Address, amount: U256) {
         let tx = TransactionRequest::default().with_to(to).with_value(amount);
         user.provider
@@ -108,6 +121,7 @@ impl Evm {
             .unwrap();
     }
 
+    /// Queriy the ETH balance of the given address.
     pub async fn get_balance(&self, addr: Address) -> U256 {
         self.default_user()
             .provider
@@ -116,6 +130,7 @@ impl Evm {
             .unwrap()
     }
 
+    /// Mine a single block manually via `evm_mine`.
     pub async fn mine_block(&self) {
         let response: serde_json::Value = self
             .default_user()
@@ -129,6 +144,7 @@ impl Evm {
 }
 
 impl Default for Evm {
+    /// Initialize the Anvil test environment and capture its logs.
     fn default() -> Self {
         let mut anvil = Anvil::new().keep_stdout().try_spawn().unwrap();
         let anvil_stdout = anvil.child_mut().stdout.take();
@@ -159,6 +175,7 @@ impl Default for Evm {
     }
 }
 
+/// A fully configured EVM provider with wallet, nonce, gas, and chain ID fillers.
 pub type EvmProvider = FillProvider<
     JoinFill<
         JoinFill<
@@ -171,10 +188,14 @@ pub type EvmProvider = FillProvider<
     Ethereum,
 >;
 
+/// Represents a test user (address + provider + signer) in the EVM environment.
 #[derive(Clone)]
 pub struct EvmUser {
+    /// Ethereum address of the user.
     pub address: Address,
+    /// Secret key used for signing transactions.
     pub key: SecretKey<Secp256k1>,
+    /// EVM provider configured for this user.
     pub provider: Arc<EvmProvider>,
 }
 

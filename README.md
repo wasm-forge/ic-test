@@ -1,6 +1,13 @@
 # ic-test
 
-**ic-test** is a command-line tool that helps you organize the test workflow for cross-chain projects on the Internet Computer (IC). It reads your `dfx.json` and `foundry.toml` files to automatically create testing base and uses existing frameworks (`pocket-ic` and `foundry`) to execute tests.
+**ic-test** is a command-line tool that helps you organize the test workflow for cross-chain projects on the Internet Computer (IC). 
+It reads your `dfx.json` and `foundry.toml` files to automatically create testing base and uses existing frameworks (`pocket-ic` and `foundry`) to execute tests. 
+The generated bindings and runtime helpers offer:
+- Simplified test project setup.
+- Unified, ergonomic testing interface for IC and EVM components.
+- Static type checking and auto-completion for the canisters under test.
+- A high-level abstraction over deployment and method calls.
+
 
 ## Overview
 
@@ -62,6 +69,8 @@ For a given Solidity contract name if will try to find its json implementation. 
 ```bash
 ic-test add contract MyContract
 ```
+
+
 
 
 ## License

@@ -1,3 +1,15 @@
+//! ## Deployer Trait and DeployBuilder
+//!
+//! The [`Deployer`] trait provides an ergonomic, configurable interface to create or manage
+//! canisters using a builder pattern. It supports creating new canisters, installing/reinstalling/upgrading
+//! WASM modules, and injecting arguments and cycles.
+//!
+//! It’s implemented for types like [`IcpUser`] that fulfill the [`Caller`] trait,
+//! and it relies on a [`Provider`] to handle low-level interaction with the IC test environment.
+//!
+//! The central utility, [`DeployBuilder`], enables step-by-step customization of deployments
+//! and safely returns fully-constructed canister instances.
+
 use candid::Principal;
 use ic_cdk::management_canister::{CanisterInstallMode, CanisterSettings};
 use thiserror::Error;
@@ -7,6 +19,7 @@ use super::{
     provider::{Provider, RejectResponse},
 };
 
+/// Describes potential errors that can occur during the deployment process.
 #[derive(Debug, Error)]
 pub enum DeployError {
     #[error("failed to candid encode arguments: {}", .0)]
@@ -21,16 +34,29 @@ pub enum DeployError {
     UnspecifiedCanister,
 }
 
+/// Represents the deployment strategy for a canister.
 pub enum DeployMode {
+    /// Creates and installs a new canister.
     Create,
+
+    /// Installs a fresh WASM on an existing canister.
     Install,
+
+    /// Reinstalls WASM (resetting all state).
     Reinstall,
+
+    /// Upgrades a canister (preserving state).
     Upgrade,
 }
 
+/// A type capable of deploying canisters with arguments and lifecycle control.
+///
+/// Implementors typically use [`DeployBuilder`] to configure and execute deployment logic.
 pub trait Deployer {
     type Caller: Caller;
 
+    /// Begins a canister deployment sequence with the given candid-encoded args
+    /// and a constructor function for your strongly-typed client.
     fn deploy<Canister>(
         &self,
         args: Result<Vec<u8>, candid::error::Error>,
@@ -38,15 +64,32 @@ pub trait Deployer {
     ) -> DeployBuilder<Canister, Self::Caller>;
 }
 
+/// Builder struct for configuring and performing a canister deployment.
+///
+/// Provides an ergonomic way to:
+/// - Set the deployment mode (create, install, upgrade, reinstall)
+/// - Attach initial cycles
+/// - Define WASM module and settings
+/// - Inject candid arguments
+/// - Produce a typed client interface
 pub struct DeployBuilder<Canister, C: Caller> {
+    /// Provider that performs actual deployment (e.g. PocketIc).
     pub provider: C::Provider,
+    /// The logical caller for interactions post-deployment.
     pub caller: C,
+    /// Optional canister ID for pre-existing canisters.
     pub canister_id: Option<Principal>,
+    /// Deployment mode (create, install, etc.).
     pub mode: DeployMode,
+    /// Canister configuration (controllers, memory allocation, compute allocation, etc.).
     pub settings: CanisterSettings,
+    /// Initial cycles to add.
     pub cycles: u128,
+    /// WASM module to install.
     pub wasm: Vec<u8>,
+    /// Candid-encoded constructor arguments.
     pub args: Result<Vec<u8>, candid::error::Error>,
+    /// Function to wrap a raw `Principal` in a user-defined canister type.
     pub new: fn(&C, Principal) -> Canister,
 }
 
@@ -101,6 +144,7 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
         }
     }
 
+    /// Executes the deployment, returning either a constructed canister interface or an error.
     pub async fn maybe_call(self) -> Result<Canister, DeployError> {
         let args = self.args.map_err(DeployError::ArgumentEncoding)?;
 
@@ -137,6 +181,7 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
         Ok((self.new)(&self.caller, canister_id))
     }
 
+    /// Executes deployment, assuming it should not fail. Panics if deployment fails.
     pub async fn call(self) -> Canister {
         self.maybe_call().await.unwrap()
     }
