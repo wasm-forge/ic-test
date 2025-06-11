@@ -27,19 +27,17 @@ pub enum CallError {
     ResultDecoding(candid::error::Error),
 }
 
-/// Indicates whether the call is a query (read-only) or update (state-changing).
+/// Call mode.
 pub enum CallMode {
     Query,
     Update,
 }
 
 /// Trait for objects that can initiate canister calls.
-///
-/// Implemented by user types like [`IcpUser`], allowing polymorphic handling of principals.
 pub trait Caller {
     type Provider: Provider;
 
-    /// Initiates a call to a canister method.
+    /// Initiate a call to a canister method.
     ///
     /// # Parameters
     /// - `canister_id`: The target canister's principal.
@@ -99,7 +97,7 @@ impl<R: for<'a> Deserialize<'a> + CandidType, P: Provider> CallBuilder<R, P> {
         }
     }
 
-    /// Executes the call and returns a `Result` with decoded output or [`CallError`].
+    /// Execute the call and returns a `Result` with decoded output or [`CallError`].
     ///
     /// # Errors
     /// Returns a [`CallError`] if encoding, calling, or decoding fails.
@@ -124,12 +122,8 @@ impl<R: for<'a> Deserialize<'a> + CandidType, P: Provider> CallBuilder<R, P> {
         decode_one(&reply).map_err(CallError::ResultDecoding)
     }
 
-    /// Executes the call and unwraps the result.
+    /// Execute the call assuming there is no error ().
     ///
-    /// Panics if the call fails — suitable for tests where failure is not expected.
-    ///
-    /// # Panics
-    /// Panics if any [`CallError`] occurs.
     pub async fn call(self) -> R {
         self.maybe_call().await.unwrap()
     }

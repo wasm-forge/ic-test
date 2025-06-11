@@ -9,15 +9,6 @@
 //! - Simplified test writing using high-level APIs.
 //! - Optional EVM support via feature flag `"evm"`.
 //!
-//! ## Example
-//!
-//! ```rust
-//! #[tokio::main]
-//! async fn main() {
-//!     let test = ic_test::IcpTest::new().await;
-//!     test.tick().await; // Advances IC and EVM (if enabled) environments.
-//! }
-//! ```
 
 #[cfg(feature = "evm")]
 use icp::http_outcalls::handle_http_outcalls;
@@ -55,7 +46,7 @@ pub struct IcpTest {
 }
 
 impl IcpTest {
-    /// Creates a new `IcpTest` instance.
+    /// Create a new `IcpTest` instance.
     ///
     /// Initializes the IC environment and, if the `evm` feature is enabled,
     /// also spawns a background task to handle EVM outcalls via Pocket-IC.
@@ -78,7 +69,7 @@ impl IcpTest {
         result
     }
 
-    /// Advances both the IC and EVM environments.
+    /// Advance both the IC and EVM environments.
     ///
     /// - For IC, triggers a single tick cycle (e.g., canister heartbeat and timer).
     /// - For EVM (if enabled), mines a new block.

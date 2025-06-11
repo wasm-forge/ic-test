@@ -144,7 +144,7 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
         }
     }
 
-    /// Executes the deployment, returning either a constructed canister interface or an error.
+    /// Execute the deployment, returning either a constructed canister interface or an error.
     pub async fn maybe_call(self) -> Result<Canister, DeployError> {
         let args = self.args.map_err(DeployError::ArgumentEncoding)?;
 
@@ -181,7 +181,7 @@ impl<Canister, C: Caller> DeployBuilder<Canister, C> {
         Ok((self.new)(&self.caller, canister_id))
     }
 
-    /// Executes deployment, assuming it should not fail. Panics if deployment fails.
+    /// Execute deployment, assuming it should not fail. Panics if deployment fails.
     pub async fn call(self) -> Canister {
         self.maybe_call().await.unwrap()
     }

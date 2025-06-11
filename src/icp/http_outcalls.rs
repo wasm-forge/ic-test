@@ -22,7 +22,7 @@ use pocket_ic::{
 use std::{sync::Weak, time::Duration};
 use tokio::time::sleep;
 
-/// Spawns a polling loop to handle HTTP outcalls in [`PocketIc`] by forwarding
+/// Spawn a polling loop to handle HTTP outcalls in [`PocketIc`] by forwarding
 /// matching requests to the given Anvil node, and mocking their response.
 ///
 /// # Parameters
@@ -41,16 +41,6 @@ use tokio::time::sleep;
 ///
 /// - Only requests with exact URL matches in `rpc_nodes` are forwarded.
 /// - Unsupported URLs are logged and not answered (which may cause the test to block).
-///
-/// # Example
-///
-/// ```ignore
-/// tokio::spawn(handle_http_outcalls(
-///     Arc::downgrade(&pocket_ic),
-///     Url::parse("http://localhost:8545").unwrap(),
-///     vec!["http://localhost:8545".to_string()],
-/// ));
-/// ```
 pub async fn handle_http_outcalls(
     pocket_ic: Weak<PocketIc>,
     anvil: reqwest::Url,
@@ -73,7 +63,7 @@ pub async fn handle_http_outcalls(
     }
 }
 
-/// Forwards an HTTP request to the configured Anvil endpoint and wraps the result
+/// Forward an HTTP request to the configured Anvil endpoint and wrap the result
 /// in a mock HTTP response that PocketIC can return to the canister.
 async fn forward_http(request: CanisterHttpRequest, url: String) -> MockCanisterHttpResponse {
     let client = reqwest::Client::new();
@@ -127,7 +117,7 @@ async fn forward_http(request: CanisterHttpRequest, url: String) -> MockCanister
     }
 }
 
-/// Converts a simple `(name, value)` tuple list into PocketIC's HTTP header format.
+/// Convert a simple `(name, value)` tuple list into PocketIC's HTTP header format.
 fn strings_to_headers(hs: Vec<(String, String)>) -> Vec<CanisterHttpHeader> {
     hs.into_iter()
         .map(|(name, value)| CanisterHttpHeader { name, value })

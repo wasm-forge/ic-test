@@ -27,7 +27,7 @@ pub struct IcpUser {
 }
 
 impl IcpUser {
-    /// Prepares a canister method call builder for the user.
+    /// Prepare a canister method call builder for the user.
     ///
     /// # Parameters
     /// - `canister_id`: The principal ID of the target canister.
@@ -57,7 +57,7 @@ impl IcpUser {
         }
     }
 
-    /// Prepares a new canister deployment as this user.
+    /// Prepare a new canister deployment as this user.
     ///
     /// # Parameters
     /// - `args`: Encoded Candid arguments for the canister constructor, or an error.
@@ -87,7 +87,7 @@ impl IcpUser {
 impl Caller for IcpUser {
     type Provider = IcpUser;
 
-    /// Dispatches a call via this user, required by the [`Caller`] trait.
+    /// Dispatch a call via this user, required by the [`Caller`] trait.
     fn call<ResultType>(
         &self,
         canister_id: Principal,
@@ -105,7 +105,7 @@ impl Caller for IcpUser {
 impl Deployer for IcpUser {
     type Caller = IcpUser;
 
-    /// Dispatches a deployment via this user, required by the [`Deployer`] trait.
+    /// Dispatch a deployment via this user, required by the [`Deployer`] trait.
     fn deploy<Canister>(
         &self,
         args: Result<Vec<u8>, candid::error::Error>,

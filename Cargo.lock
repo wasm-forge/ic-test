@@ -2838,7 +2838,7 @@ dependencies = [
 
 [[package]]
 name = "ic-test"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "alloy",
  "alloy-node-bindings",

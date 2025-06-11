@@ -4,7 +4,7 @@
 //! Internet Computer canisters in a test environment. It abstracts over actions such as creating
 //! canisters, adding cycles, installing code, and performing method calls (query and update).
 //!
-//! This trait is implemented by [`IcpUser`] using [`PocketIc`], making it possible to simulate full
+//! This trait is implemented by [`IcpUser`], making it possible to simulate full
 //! canister lifecycles during testing. These interactions are wrapped in type-safe, ergonomic
 //! methods that surface consistent error reporting via `RejectResponse`.
 
@@ -21,21 +21,21 @@ use super::IcpUser;
 /// control, making it pluggable across test environments (e.g., PocketIc, remote agents).
 #[allow(async_fn_in_trait)]
 pub trait Provider {
-    /// Creates a new canister with the given settings and (optionally) a specified ID.
+    /// Create a new canister with the given settings and (optionally) a specified ID.
     async fn create_canister(
         &self,
         settings: CanisterSettings,
         specified_id: Option<CanisterId>,
     ) -> Result<CanisterId, RejectResponse>;
 
-    /// Adds the specified number of cycles to a canister.
+    /// Add the specified number of cycles to a canister.
     async fn add_cycles(
         &self,
         canister_id: CanisterId,
         cycles: u128,
     ) -> Result<u128, RejectResponse>;
 
-    /// Installs, reinstalls, or upgrades the given canister code, with arguments.
+    /// Install, reinstalls, or upgrades the given canister code, with arguments.
     async fn install_code(
         &self,
         mode: CanisterInstallMode,
@@ -44,7 +44,7 @@ pub trait Provider {
         arg: Vec<u8>,
     ) -> Result<(), RejectResponse>;
 
-    /// Executes a query method on a canister.
+    /// Execute a query method on a canister.
     async fn query_call(
         &self,
         canister_id: CanisterId,
@@ -52,7 +52,7 @@ pub trait Provider {
         payload: Vec<u8>,
     ) -> Result<Vec<u8>, RejectResponse>;
 
-    /// Executes an update method on a canister.
+    /// Execute an update method on a canister.
     async fn update_call(
         &self,
         canister_id: CanisterId,
