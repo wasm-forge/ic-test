@@ -4,6 +4,7 @@ use std::{
 };
 
 use convert_case::{Case, Casing};
+use log::debug;
 use toml_edit::DocumentMut;
 
 use crate::{
@@ -69,7 +70,10 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
         if !evm_setup.skip_foundry_toml {
             use toml_edit::DocumentMut;
 
-            let toml = fs::read_to_string(Path::new(&evm_setup.foundry_toml).join(FOUNDRY_TOML))?;
+            let foundry_toml_path = &evm_setup.get_foundry_toml();
+            debug!("Foundry path: {:?}", foundry_toml_path);
+
+            let toml = fs::read_to_string(foundry_toml_path)?;
 
             // paths are relative to the toml path
             let doc = toml
@@ -89,6 +93,7 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
         // add all contracts from "src" to the setup
         let path = &evm_setup.get_foundry_src();
+        debug!("Check foundry src path: {:?}", path);
         if path.is_dir() {
             for entry in fs::read_dir(path)? {
                 let entry = entry?;

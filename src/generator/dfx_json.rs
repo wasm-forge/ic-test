@@ -43,8 +43,7 @@ pub fn add_canister(
     setup: &mut IcpTestSetup,
 ) -> Result<(), anyhow::Error> {
     // skip frontend canisters
-    let generate_bindings = canister.canister_type == Some("custom".to_string())
-        || canister.canister_type == Some("rust".to_string());
+    let generate_bindings = canister.canister_type != Some("asset".to_string());
 
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 

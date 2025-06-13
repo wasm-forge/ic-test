@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::Ok;
-use log::info;
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 
@@ -21,7 +21,7 @@ use super::arguments::IcpTestArgs;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EvmSetup {
     // Path to foundry.toml file (default: "")
-    pub foundry_toml: String,
+    pub foundry_toml_path: String,
 
     // Do not use foundry.toml to collect information on the existing contracts
     pub skip_foundry_toml: bool,
@@ -37,15 +37,21 @@ pub struct EvmSetup {
 }
 
 impl EvmSetup {
+    pub fn get_foundry_toml(&self) -> PathBuf {
+        PathBuf::new()
+            .join(self.foundry_toml_path.clone())
+            .join(crate::common::FOUNDRY_TOML)
+    }
+
     pub fn get_foundry_src(&self) -> PathBuf {
         PathBuf::new()
-            .join(self.foundry_toml.clone())
+            .join(self.foundry_toml_path.clone())
             .join(self.foundry_src.clone())
     }
 
     pub fn get_foundry_out(&self) -> PathBuf {
         PathBuf::new()
-            .join(self.foundry_toml.clone())
+            .join(self.foundry_toml_path.clone())
             .join(self.foundry_out.clone())
     }
 }
@@ -103,7 +109,7 @@ impl Default for IcpSetup {
 impl Default for EvmSetup {
     fn default() -> Self {
         Self {
-            foundry_toml: "".to_string(),
+            foundry_toml_path: "".to_string(),
             foundry_src: "src".to_string(),
             foundry_out: "out".to_string(),
             skip_foundry_toml: false,
@@ -167,8 +173,9 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
         let foundry_toml = search_file_recursively(Path::new("."), 3, crate::common::FOUNDRY_TOML);
 
         if let Some(f) = foundry_toml {
+            let path = f.parent().expect("could not find foundry.toml parent");
             let evm = EvmSetup {
-                foundry_toml: f.to_string_lossy().to_string(),
+                foundry_toml_path: path.to_string_lossy().to_string(),
                 ..EvmSetup::default()
             };
 
@@ -196,9 +203,14 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
     }
 
     // Do setup initializations
+
+    debug!("automatically adding canisters...");
     add_canisters(&mut setup)?;
 
+    debug!("automatically adding contracts...");
     add_contracts(&mut setup)?;
+
+    debug!("processing command {:?}", &args.command);
 
     match &args.command {
         arguments::Command::New { test_folder } => {
