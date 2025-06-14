@@ -21,18 +21,23 @@ use super::arguments::IcpTestArgs;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EvmSetup {
     // Path to foundry.toml file (default: "")
+    #[serde(default)]
     pub foundry_toml_path: String,
 
     // Do not use foundry.toml to collect information on the existing contracts
+    #[serde(default)]
     pub skip_foundry_toml: bool,
 
     // Path to found "foundry src" containing contract .sol files
+    #[serde(default)]
     pub foundry_src: String,
 
     // Path to found "foundry out" containing contract Solidity json files
+    #[serde(default)]
     pub foundry_out: String,
 
     // ETH contracts setup
+    #[serde(default)]
     pub contracts: BTreeMap<String, ContractSetup>,
 }
 

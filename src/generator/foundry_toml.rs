@@ -1,16 +1,10 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 use convert_case::{Case, Casing};
 use log::debug;
 use toml_edit::DocumentMut;
 
-use crate::{
-    common::FOUNDRY_TOML,
-    ic_test_json::{ContractSetup, IcpTestSetup},
-};
+use crate::ic_test_json::{ContractSetup, IcpTestSetup};
 
 fn get_toml_src(doc: &DocumentMut) -> Option<String> {
     doc.get("profile")?
@@ -70,10 +64,10 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
         if !evm_setup.skip_foundry_toml {
             use toml_edit::DocumentMut;
 
-            let foundry_toml_path = &evm_setup.get_foundry_toml();
-            debug!("Foundry path: {:?}", foundry_toml_path);
+            let foundry_toml = &evm_setup.get_foundry_toml();
+            debug!("Foundry path: {:?}", foundry_toml);
 
-            let toml = fs::read_to_string(foundry_toml_path)?;
+            let toml = fs::read_to_string(foundry_toml)?;
 
             // paths are relative to the toml path
             let doc = toml
