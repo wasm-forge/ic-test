@@ -3,7 +3,7 @@ name = "ic-test"
 version = "0.1.10"
 edition = "2021"
 description = "This tool helps to organize IC Rust canister testing as well as cross-testing between ICP and EVM."
-keywords = ["ic", "internet-computer", "testing", "rust canister"]
+keywords = ["ic", "internet-computer", "testing"]
 license = "MIT"
 repository = "https://github.com/wasm-forge/ic-test"
 
