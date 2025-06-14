@@ -63,6 +63,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     } else {
         arguments::Command::New {
             test_folder: "tests".to_owned(),
+            force: false,
         }
     };
 
@@ -70,7 +71,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     let yes_no = vec!["yes", "no"];
 
     match command {
-        arguments::Command::New { test_folder } => {
+        arguments::Command::New { test_folder, force } => {
             let version = env!("CARGO_PKG_VERSION");
 
             let create_test_project = FuzzySelect::with_theme(&theme)
@@ -102,7 +103,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
                     .interact_text()?;
             }
 
-            command = crate::arguments::Command::New { test_folder };
+            command = crate::arguments::Command::New { test_folder, force };
         }
         arguments::Command::Update {
             name: _,

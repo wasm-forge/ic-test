@@ -218,8 +218,9 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
     debug!("processing command {:?}", &args.command);
 
     match &args.command {
-        arguments::Command::New { test_folder } => {
+        arguments::Command::New { test_folder, force } => {
             setup.test_folder = test_folder.clone();
+            setup.forced = *force;
         }
 
         arguments::Command::Update {

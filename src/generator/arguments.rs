@@ -36,6 +36,10 @@ pub enum Command {
     New {
         #[arg(default_value_t = String::from("tests"))]
         test_folder: String,
+
+        /// Enforce generating over the uncommitted git changes
+        #[arg(long, default_value = "false")]
+        force: bool,
     },
     /// Update the existing test project
     Update {
@@ -58,7 +62,7 @@ pub enum Command {
         #[arg(long)]
         sol_json: Option<String>,
 
-        /// Enforce overwriting the test_setup.rs file
+        /// Enforce overwriting the test_setup.rs file and enforce writing over the uncommitted git changes
         #[arg(long, default_value = "false")]
         force: bool,
     },

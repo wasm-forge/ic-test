@@ -1,14 +1,4 @@
-//! # ic-test
-//!
-//! `ic-test` is a utility for building high-level integration tests for cross-chain projects
-//! on the Internet Computer (IC). It bridges IC and EVM environments by generating appropriate
-//! interfaces and managing runtime test orchestration.
-//!
-//! This crate supports:
-//! - Automatic handling of IC canisters and EVM contracts.
-//! - Simplified test writing using high-level APIs.
-//! - Optional EVM support via feature flag `"evm"`.
-//!
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "evm")]
 use icp::http_outcalls::handle_http_outcalls;

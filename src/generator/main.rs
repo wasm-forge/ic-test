@@ -1,5 +1,3 @@
-
-
 mod arguments;
 mod candid_to_rust;
 mod candid_value_to_rust;
@@ -57,7 +55,10 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
     // Generate files based on the setup prepared
 
     match &args.command {
-        arguments::Command::New { test_folder: _ } => {
+        arguments::Command::New {
+            test_folder: _,
+            force: _,
+        } => {
             // we do not initialize if the tests folder exists already
             let test_folder = Path::new(&setup.test_folder);
 
@@ -75,7 +76,7 @@ fn process_arguments(args: &IcpTestArgs, setup: &mut IcpTestSetup) -> anyhow::Re
             }
 
             let root = get_main_project_dir()?.to_string_lossy().to_string();
-            if has_uncommitted_changes(&root, setup)? {
+            if !setup.forced && has_uncommitted_changes(&root, setup)? {
                 let err_msg =
                     "Commit/reject any changes before calling 'ic-test new' to avoid data loss.";
                 error!("{err_msg}");
