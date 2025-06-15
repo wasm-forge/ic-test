@@ -1,14 +1,14 @@
 # ic-test
 
-**ic-test** is a command-line tool that helps you set up and manage canister tests on the Internet Computer (IC) using Rust.  
+**ic-test** is a command-line tool that helps to set up and manage canister tests on the Internet Computer (IC) using Rust.  
 It makes it easier to create test projects and includes the basic files and setup needed for both IC canisters and optionally EVM (Ethereum Virtual Machine) smart contracts.
 
-The tool reads your `dfx.json` (must exist) and `foundry.toml` (may exist) files to build the test environment automatically. It uses existing tools like `pocket-ic` and `alloy` (foundry) to run your tests.  
+The tool reads the `dfx.json` (must exist) and the `foundry.toml` (may exist) files in order to build the test environment automatically. It uses `pocket-ic` and `alloy` (foundry) to run tests.
 The generated code and helpers provide:
 
 - A simple way to start a test project.
 - A single, easy-to-use interface for testing both IC and EVM parts.  
-- Type checking and auto-complete support for your canisters.
+- Type checking and auto-completion support.
 - Easy functions for deploying and calling canisters or contracts.
 
 
@@ -20,11 +20,9 @@ The generated code and helpers provide:
 - Read `foundry.toml` to get contract details.  
 - Generate Rust types from Candid (`.did`) files.  
 - Generate contract interfaces from Solidity (`.sol`) files.  
-- Provide an API to work with `.wasm` canisters and `.json` contract files in your tests.
+- Provide API to work with `.wasm` canisters and `.json` contract files in tests.
 
 ## Requirements
-
-To use **ic-test**, you’ll need:
 
 - [Rust](https://www.rust-lang.org/tools/install)
 - [DFX](https://internetcomputer.org/docs/building-apps/getting-started/install#installing-dfx-via-dfxvm) – to build and locally deploy canisters.
@@ -32,21 +30,17 @@ To use **ic-test**, you’ll need:
 
 ## Installation
 
-Install `ic-test` via Cargo:
-
 ```bash
 cargo install ic-test
 ```
 
 ## Tool usage
 
-Runthe tool with:
-
 ```bash
 ic-test <COMMAND> [OPTIONS]
 ```
 
-Without arguments, it starts in interactive mode. If an `ic-test.json` config file exists, the tool switches to "update" mode to regenerate the existing bindings.
+Without arguments it starts in interactive mode to create a new test project. If an `ic-test.json` config file exists already, the "update" mode will regenerate the existing test project bindings.
 
 ### Create a new test project
 
@@ -55,9 +49,9 @@ ic-test new tests
 ```
 
 - Creates a new test project in the `tests` folder.
-- Looks for your canisters and contracts, generates API bindings and a sample test.
+- Looks for canisters and contracts, generates API bindings and a sample test.
 - Generates an `ic-test.json` configuration file.
-- Fails if the `tests` folder already exists, the user would need to chose a different name.
+- Fails if the `tests` folder already exists, the user would need to choose a different name.
 
 
 ### Update/regenerate an existing test project
@@ -71,7 +65,7 @@ Regenerates bindings using the configuration in `ic-test.json`.
 
 ## "Hello world" tutorial
 
-*Create a basic canister:*
+*Create a "Hello, World!" canister:*
 
 ```bash
 dfx new hello-ic-test --type rust --no-frontend
@@ -87,9 +81,9 @@ dfx canister create --all
 dfx build
 ```
 
-*Generate test bindins*
+*Generate test bindings*
 
-If you have uncommitted changes, either commit them or use the `--force` flag:
+If there are uncommitted changes, either commit them before generating or use the `--force` flag:
 
 ```bash
 ic-test new tests --force
@@ -104,7 +98,7 @@ This creates a tests package with:
 
 ### Example test
 
-Edit `tests.rs`:
+*Edit `tests.rs`:*
 
 ```rust
 use ic_test::IcpTest;
@@ -171,6 +165,16 @@ fn increment_counter() {
 #[ic_cdk::query]
 fn get_counter() -> u64 {
     STATE.with(|state| state.borrow().value)
+}
+```
+
+*Update Candid file `hello-ic-test-backend.did`:*
+
+```candid
+service : (nat64, nat64) -> {
+  "greet": (text) -> (text) query;
+  "get_counter": () -> (nat64) query;
+  "increment_counter": () -> ();
 }
 ```
 
@@ -252,9 +256,3 @@ forge build
 
 cargo test
 ```
-
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file in this repository for more details.
-
