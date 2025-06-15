@@ -204,6 +204,8 @@ service : (nat64, nat64) -> {
 *Regenerate the bindings:*
 
 ```bash
+dfx build
+
 ic-test
 ```
 

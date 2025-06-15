@@ -160,10 +160,17 @@ fn main() -> anyhow::Result<()> {
             "Successfully generated test bindings in project '{}'.",
             setup.test_folder
         );
-        if setup.test_setup_rs_regenerated {
-            println!(
+
+        if let arguments::Command::New {
+            test_folder: _,
+            force: _,
+        } = args.command
+        {
+            if setup.test_setup_rs_regenerated {
+                println!(
                 "A sample test file has been created: '{}/src/tests.rs'. You can modify this file to write your own tests.", setup.test_folder
             );
+            }
         }
     }
 
