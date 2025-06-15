@@ -100,7 +100,7 @@ This creates a tests package with:
 
 *Edit `tests.rs`:*
 
-```rust
+<pre>```rust
 use ic_test::IcpTest;
 
 use crate::test_setup;
@@ -119,7 +119,7 @@ async fn test_greet() {
 
     assert_eq!(result, "Hello, ic-test!");
 }
-```
+```</pre>
 
 *Run tests:*
 
@@ -131,7 +131,7 @@ cargo test
 
 *Update the canister backend:*
 
-```rust
+<pre>```rust
 //...
 
 #[derive(Clone, Default)]
@@ -166,7 +166,7 @@ fn increment_counter() {
 fn get_counter() -> u64 {
     STATE.with(|state| state.borrow().value)
 }
-```
+```</pre>
 
 *Update Candid file `hello-ic-test-backend.did`:*
 
@@ -211,7 +211,7 @@ ic-test
 
 The `ic-test` will enter interactive mode and prompt user to allow overwriting the `test_setup.rs` file. Upon confirmation the the `test_setup.rs` is regenerated with the initialization parameters:
 
-```rust
+<pre>```rust
 //...
 
 let hello_ic_test_backend = hello_ic_test_backend::deploy(&icp_user, 50, 73)
@@ -219,13 +219,13 @@ let hello_ic_test_backend = hello_ic_test_backend::deploy(&icp_user, 50, 73)
     .await;
 
 //...
-```
+```</pre>
 
 ### New test
 
 *Add a new test in `tests.rs`:*
 
-```rust
+<pre>```rust
 #[tokio::test]
 async fn test_counter() {
     let test_setup::Env {
@@ -243,7 +243,7 @@ async fn test_counter() {
 
     assert_eq!(result, 123u64); // 50 + 73
 }
-```
+```</pre>
 
 ### Example of testing an EVM contract
 
