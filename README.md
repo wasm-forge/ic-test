@@ -250,16 +250,6 @@ async fn test_counter() {
 }
 ```
 
-### Example of testing an EVM contract
+### More examples
 
-For a more advanced example involving an EVM contract, check out the [Co-processor example](https://github.com/wasm-forge/icp-evm-coprocessor-starter).
-
-```bash
-git clone --branch testing https://github.com/letmejustputthishere/icp-evm-coprocessor-starter
-
-dfx build
-
-forge build
-
-cargo test
-```
+For other examples, see [https://github.com/wasm-forge/ic-test-examples].
