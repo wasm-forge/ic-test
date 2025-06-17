@@ -1,7 +1,7 @@
 # ic-test
 
-**ic-test** is a command-line tool that helps to set up and manage canister tests on the Internet Computer (IC) using Rust.  
-It makes it easier to create test projects and includes the basic files and setup needed for both IC canisters and optionally EVM (Ethereum Virtual Machine) smart contracts.
+**ic-test** is a command-line tool that helps to set up and manage Rust canister tests on the Internet Computer (IC) using.
+It makes it easier to create a test project and includes the basic files and setup needed for both IC canisters and optionally EVM (Ethereum Virtual Machine) smart contracts.
 
 The tool reads the `dfx.json` (must exist) and the `foundry.toml` (may exist) files in order to build the test environment automatically. It uses `pocket-ic` and `alloy` (foundry) to run tests.
 The generated code and helpers provide:
@@ -100,7 +100,7 @@ This creates a tests package with:
 
 *Edit `tests.rs`:*
 
-<pre>```rust
+```rust,ignore
 use ic_test::IcpTest;
 
 use crate::test_setup;
@@ -119,7 +119,7 @@ async fn test_greet() {
 
     assert_eq!(result, "Hello, ic-test!");
 }
-```</pre>
+```
 
 *Run tests:*
 
@@ -131,8 +131,13 @@ cargo test
 
 *Update the canister backend:*
 
-<pre>```rust
-//...
+```rust
+use std::cell::RefCell;
+
+#[ic_cdk::query]
+fn greet(name: String) -> String {
+    format!("Hello, {}!", name)
+}
 
 #[derive(Clone, Default)]
 struct CounterState {
@@ -166,7 +171,7 @@ fn increment_counter() {
 fn get_counter() -> u64 {
     STATE.with(|state| state.borrow().value)
 }
-```</pre>
+```
 
 *Update Candid file `hello-ic-test-backend.did`:*
 
@@ -211,21 +216,21 @@ ic-test
 
 The `ic-test` will enter interactive mode and prompt user to allow overwriting the `test_setup.rs` file. Upon confirmation the the `test_setup.rs` is regenerated with the initialization parameters:
 
-<pre>```rust
+```rust,ignore
 //...
+    let hello_ic_test_backend = hello_ic_test_backend::deploy(&icp_user, 50, 73)
+        .call()
+        .await;
 
-let hello_ic_test_backend = hello_ic_test_backend::deploy(&icp_user, 50, 73)
-    .call()
-    .await;
+// ...
 
-//...
-```</pre>
+```
 
 ### New test
 
 *Add a new test in `tests.rs`:*
 
-<pre>```rust
+```rust
 #[tokio::test]
 async fn test_counter() {
     let test_setup::Env {
@@ -243,7 +248,7 @@ async fn test_counter() {
 
     assert_eq!(result, 123u64); // 50 + 73
 }
-```</pre>
+```
 
 ### Example of testing an EVM contract
 
