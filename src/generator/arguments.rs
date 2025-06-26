@@ -93,6 +93,10 @@ pub struct IcpTestArgs {
     #[arg(long)]
     pub ui: Option<bool>,
 
+    /// Root project directory, where to run the tool
+    #[arg(long)]
+    pub root: Option<String>,
+
     /// Do not use foundry.toml to gather information on the available contracts
     #[arg(long)]
     pub skip_foundry_toml: Option<bool>,

@@ -83,11 +83,24 @@ pub fn add_canister(
     Ok(())
 }
 
+fn check_dfx_json_exists(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
+    // check if dfx.json is found
+    let dfx_json_path = Path::new(&setup.icp_setup.dfx_json);
+
+    if !(dfx_json_path.exists() || dfx_json_path.is_file()) {
+        return Err(anyhow::anyhow!("'dfx.json' not found! Make sure you are starting the ic-test at the root of your canister project."));
+    }
+
+    Ok(())
+}
+
 // gather canister information from dfx.json
 pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if setup.icp_setup.skip_dfx_json {
         return Ok(());
     }
+
+    check_dfx_json_exists(setup)?;
 
     let dfx_json_path = Path::new(&setup.icp_setup.dfx_json);
     let json_string = fs::read_to_string(dfx_json_path)?;

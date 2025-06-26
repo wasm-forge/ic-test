@@ -19,17 +19,6 @@ fn check_test_folder(test_folder: &str, project_dir: &Path) -> Result<(), Error>
     Ok(())
 }
 
-fn check_dfx_json_exists() -> anyhow::Result<()> {
-    // check if dfx.json is found
-    let dfx_json_path = Path::new("dfx.json");
-
-    if !(dfx_json_path.exists() || dfx_json_path.is_file()) {
-        return Err(anyhow::anyhow!("'dfx.json' not found! Make sure you are starting the ic-test at the root of your canister project."));
-    }
-
-    Ok(())
-}
-
 pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     // check if we are in the main project folder
     let project_dir = get_main_project_dir()?;
@@ -40,7 +29,11 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     if argc > 1 {
         let result = IcpTestArgs::parse();
 
-        check_dfx_json_exists()?;
+        // if the root parameter was provided, change directory before doing anything else
+        if let Some(root) = &result.root {
+            std::env::set_current_dir(root)
+                .expect("Failed to find the root directory, where to run the ic-test!");
+        }
 
         if args[1] == "new" && argc == 2 {
             // Special case: "new" command with no additional args — continue to UI mode
@@ -48,8 +41,6 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
             return Ok(result);
         }
     }
-
-    check_dfx_json_exists()?;
 
     let mut command = if project_dir.join("ic-test.json").is_file() {
         arguments::Command::Update {
@@ -141,5 +132,6 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
         skip_dfx_json: None,
         skip_foundry_toml: None,
         ui: Some(true),
+        root: None,
     })
 }

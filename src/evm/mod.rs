@@ -121,7 +121,7 @@ impl Evm {
             .unwrap();
     }
 
-    /// Queriy the ETH balance of the given address.
+    /// Query the ETH balance of the given address.
     pub async fn get_balance(&self, addr: Address) -> U256 {
         self.default_user()
             .provider
