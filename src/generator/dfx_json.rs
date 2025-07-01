@@ -54,7 +54,7 @@ pub fn add_canister(
 
         init_args_rust: "".to_string(),
         var_name: canister_name.to_case(Case::Snake),
-        service_name: format!("{}Canister", canister_name).to_case(Case::Pascal),
+        service_name: format!("{canister_name}Canister").to_case(Case::Pascal),
         candid_path: candid,
         wasm,
         specified_id: None,

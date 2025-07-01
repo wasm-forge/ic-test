@@ -127,8 +127,7 @@ fn pp_value_type_error_comment<'a>(arg_type: &'a Type, arg_value: &'a IDLValue) 
     enclose(
         "todo!() /* ",
         RcDoc::text(format!(
-            "incompatible type value '{}' for type '{}'",
-            arg_value, arg_type
+            "incompatible type value '{arg_value}' for type '{arg_type}'"
         )),
         " */",
     )
@@ -235,11 +234,11 @@ fn pp_init_arg<'a>(
             _ => RcDoc::text("Some(todo!())"),
         },
         TypeInner::Text => match arg_value {
-            IDLValue::Text(v) => RcDoc::text(format!("\"{}\".to_string()", v)),
+            IDLValue::Text(v) => RcDoc::text(format!("\"{v}\".to_string()")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Bool => match arg_value {
-            IDLValue::Bool(b) => RcDoc::text(format!("{}", b)),
+            IDLValue::Bool(b) => RcDoc::text(format!("{b}")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Principal => RcDoc::text(format!("Principal::from_text({arg_value})")),

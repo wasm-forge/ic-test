@@ -141,15 +141,15 @@ fn main() -> anyhow::Result<()> {
     env_logger::init();
 
     let version = env!("CARGO_PKG_VERSION");
-    debug!("ic-test V{}", version);
+    debug!("ic-test V{version}");
 
     let args = interactive_setup::interactive_arguments()?;
-    debug!("args: {:?}", args);
+    debug!("args: {args:?}");
 
     // initialize generator setup
     let mut setup = init_test_config(&args)?;
 
-    debug!("setup: {:?}", setup);
+    debug!("setup: {setup:?}");
 
     process_arguments(&args, &mut setup)?;
 

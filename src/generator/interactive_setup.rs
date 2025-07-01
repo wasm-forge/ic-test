@@ -86,7 +86,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
                 .interact_text()?;
 
             while let Err(er) = check_test_folder(&test_folder, &project_dir) {
-                let p = format!("{}\nPlease enter another test folder name:", er);
+                let p = format!("{er}\nPlease enter another test folder name:");
 
                 test_folder = Input::with_theme(&theme)
                     .with_prompt(p)

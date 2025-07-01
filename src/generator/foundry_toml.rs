@@ -65,7 +65,7 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
             use toml_edit::DocumentMut;
 
             let foundry_toml = &evm_setup.get_foundry_toml();
-            debug!("Foundry path: {:?}", foundry_toml);
+            debug!("Foundry path: {foundry_toml:?}");
 
             let toml = fs::read_to_string(foundry_toml)?;
 
@@ -87,7 +87,7 @@ pub fn add_contracts(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 
         // add all contracts from "src" to the setup
         let path = &evm_setup.get_foundry_src();
-        debug!("Check foundry src path: {:?}", path);
+        debug!("Check foundry src path: {path:?}");
         if path.is_dir() {
             for entry in fs::read_dir(path)? {
                 let entry = entry?;
