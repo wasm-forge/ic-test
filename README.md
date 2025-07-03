@@ -250,14 +250,19 @@ async fn test_counter() {
 }
 ```
 
-### More examples
+*Run tests:*
+```bash
+cargo test
+```
+
+## More examples
 
 For other examples, see https://github.com/wasm-forge/ic-test-examples.
 
-### Documentation
+## Documentation
 
 See the documentation on [doc.rs](https://docs.rs/ic-test/).
 
-### Licence 
+## Licence 
 
 Licensed under <a href="LICENSE">MIT license</a>.
