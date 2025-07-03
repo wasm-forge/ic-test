@@ -253,3 +253,11 @@ async fn test_counter() {
 ### More examples
 
 For other examples, see [https://github.com/wasm-forge/ic-test-examples].
+
+### Documentation
+
+See the documentation on [doc.rs](https://docs.rs/ic-test/).
+
+### Licence 
+
+Licensed under <a href="LICENSE">MIT license</a>.
