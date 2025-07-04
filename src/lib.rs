@@ -3,7 +3,7 @@
 //! **ic-test** is a command-line tool that helps to set up and manage Rust canister tests on the Internet Computer (IC) using.
 //! It makes it easier to create a test project and includes the basic files and setup needed for both IC canisters and optionally EVM (Ethereum Virtual Machine) smart contracts.
 //!
-//! The tool reads the `dfx.json` (must exist) and the `foundry.toml` (may exist) files in order to build the test environment automatically. It uses `pocket-ic` and `alloy` (foun/dry) to run tests.
+//! The tool reads the `dfx.json` (must exist) and the `foundry.toml` (may exist) files in order to build the test environment automatically. It uses `pocket-ic` and `alloy` (Foundry) to run tests.
 //! The generated code and helpers provide:
 //!
 //! - A simple way to start a test project.
@@ -288,10 +288,10 @@ pub use crate::{
 
 /// Helper structure combining test environments
 pub struct IcpTest {
-    /// Internet Computer environment for canister interaction.
+    /// Internet Computer environment for canister interactions.
     pub icp: Icp,
 
-    /// EVM testing environment, only available when the `evm` feature is enabled.
+    /// EVM testing environment for the EVM start contract interactions.
     #[cfg(feature = "evm")]
     pub evm: Evm,
 }

@@ -1,3 +1,11 @@
+//! # ICP Local Testing Environment
+//!
+//! This module defines a local Internet Computer (IC) testing environment built
+//! on [`PocketIc`](https://docs.rs/pocket-ic).
+//! It provides access to the underlying PocketIc and has additional helper
+//! functions for easier testing.
+//!
+
 use std::{sync::Arc, time::Duration};
 
 use candid::Principal;

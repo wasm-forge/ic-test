@@ -1,6 +1,6 @@
 [package]
 name = "ic-test"
-version = "0.1.13"
+version = "0.2.0"
 edition = "2021"
 description = "This tool helps to organize IC Rust canister testing as well as cross-testing between ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
@@ -50,13 +50,16 @@ dirs = "6.0.0"
 pretty = "0.12"
 dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 
-alloy = { version = "0.12", features = ["full"], optional = true }
-alloy-node-bindings = { version = "0.12", optional = true }
+alloy = { version = "1.0.7", features = ["full"], optional = true }
+alloy-node-bindings = { version = "1.0.7", optional = true }
 
 candid = "0.10"
 pocket-ic = "9.0.2"
 ic-agent = "0.40.0"
-ic-cdk = "0.17.2"
+ic-cdk = "0.18.5"
 
 [features]
 evm = ["dep:alloy", "dep:alloy-node-bindings"]
+
+[package.metadata.docs.rs]
+features = ["evm"]

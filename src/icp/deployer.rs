@@ -11,7 +11,7 @@
 //! and safely returns fully-constructed canister instances.
 
 use candid::Principal;
-use ic_cdk::api::management_canister::main::{CanisterInstallMode, CanisterSettings};
+use ic_cdk::management_canister::{CanisterInstallMode, CanisterSettings};
 use thiserror::Error;
 
 use super::{

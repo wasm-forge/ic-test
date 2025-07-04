@@ -226,7 +226,7 @@ impl Provider<Ethereum> for EvmUser {
 
     fn call_many<'req>(
         &self,
-        bundles: &'req Vec<Bundle>,
+        bundles: &'req [Bundle],
     ) -> EthCallMany<'req, Ethereum, Vec<Vec<EthCallResponse>>> {
         self.provider.call_many(bundles)
     }
