@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dev-dependencies]
-alloy = { version = "1.0.7", features = ["full"] }
+alloy = { version = "1.0.17", features = ["full"] }
 candid = "0.10"
 cargo_metadata = "0.19.1"
 ic-cdk = "0.18.5"
