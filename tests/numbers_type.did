@@ -5,6 +5,8 @@ type InitArg = record {
   some_number4: int64;
   some_number5: int64;
   some_number6: int64;
-
+  some_number7: opt nat64;
+  some_number8: vec nat;
+  some_number9: vec nat;
 };
 service : (InitArg) -> { greet : () -> (opt text) query }

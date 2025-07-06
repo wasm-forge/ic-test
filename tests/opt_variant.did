@@ -1,0 +1,7 @@
+type SomeVariant = variant { variant1; variant2; variant3 };
+
+type RecordType = record {
+    rec_opt: opt SomeVariant;
+};
+
+service : (RecordType) -> { some_method : () -> (opt text) query }

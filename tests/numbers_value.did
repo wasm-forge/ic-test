@@ -7,6 +7,9 @@
     some_number4 = 345678: int64;
     some_number5 = 345678: int;
     some_number6 = 345678;
+    some_number7 = 345678;
+    some_number8 = vec { 1; 2; 3 };
+    some_number9 = vec {  };
 
   }
 )

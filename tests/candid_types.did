@@ -1,0 +1,20 @@
+type SomeVariant = variant { variant1; variant2; variant3; variant4 };
+type OtherVariant = variant { other_variant1; other_variant2; other_variant3; other_variant4 };
+
+type TypedVariant = variant {
+    tvar1: SomeVariant;
+    tvar2: OtherVariant;
+    tvar3: vec SomeVariant;
+    tvar4: vec OtherVariant;
+};
+
+type RecordType = record {
+    rec_some: SomeVariant;
+    rec_other: opt OtherVariant;
+    rec_opt_vec: opt vec SomeVariant;
+    rec_vec_opt: vec opt SomeVariant;
+    rec_opt: opt SomeVariant;
+    rec_vec_text: vec text;
+};
+
+service : (SomeVariant, TypedVariant, RecordType) -> { some_method : () -> (opt text) query }

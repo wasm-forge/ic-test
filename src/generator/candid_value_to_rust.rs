@@ -173,6 +173,7 @@ fn pp_init_arg<'a>(
             if let Some(ty) = &ty {
                 let init = RcDoc::text(format!("{prefix}::"))
                     .append(name)
+                    .append("::")
                     .append(pp_init_arg(prefix, env, ty, Some(arg_value), recs));
 
                 if recs.contains(type_name.as_str()) {
@@ -193,7 +194,7 @@ fn pp_init_arg<'a>(
                 let field = iter.find(|x| *x.id == id);
 
                 if let Some(field) = field {
-                    let res = RcDoc::text("::").append(id.to_string().to_case(Case::Pascal));
+                    let res = RcDoc::text(id.to_string().to_case(Case::Pascal));
 
                     match field.ty.0.as_ref() {
                         TypeInner::Null => res,
@@ -204,7 +205,7 @@ fn pp_init_arg<'a>(
                         )),
                     }
                 } else {
-                    RcDoc::text(" todo!()")
+                    RcDoc::text("todo!()")
                 }
 
                 //pp_init_variant_field(env, field.ty, variant_value, recs)
@@ -212,16 +213,17 @@ fn pp_init_arg<'a>(
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Vec(ty) => match arg_value {
-            IDLValue::Vec(idlvalues) => enclose(
-                "vec![",
-                concat(
+            IDLValue::Vec(idlvalues) => {
+                let items = concat(
                     idlvalues
                         .iter()
                         .map(|v| pp_init_arg(prefix, env, ty, Some(v), recs)),
                     ",",
-                ),
-                "]",
-            ),
+                );
+
+                enclose("vec![", items, "]")
+            }
+            // TODO: should we rather treat it as a single element?
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Opt(ty) => match arg_value {
@@ -231,7 +233,11 @@ fn pp_init_arg<'a>(
                 pp_init_arg(prefix, env, ty, Some(opt_val), recs),
                 ")",
             ),
-            _ => RcDoc::text("Some(todo!())"),
+            _ => enclose(
+                "Some(",
+                pp_init_arg(prefix, env, ty, Some(arg_value), recs),
+                ")",
+            ),
         },
         TypeInner::Text => match arg_value {
             IDLValue::Text(v) => RcDoc::text(format!("\"{v}\".to_string()")),
@@ -331,8 +337,8 @@ fn pp_init_arg<'a>(
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Nat => match arg_value {
-            IDLValue::Nat(v) => RcDoc::text(format!("candid::Nat::from_str({v})")),
-            IDLValue::Number(number) => RcDoc::text(format!("candid::Nat::from_str({number})")),
+            IDLValue::Nat(v) => RcDoc::text(format!("candid::Nat::from_str(\"{v}\")")),
+            IDLValue::Number(number) => RcDoc::text(format!("candid::Nat::from_str(\"{number})\"")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Int => match arg_value {
@@ -620,6 +626,7 @@ fn pp_default_arg<'a>(
             if let Some(ty) = &ty {
                 let init = RcDoc::text(format!("{prefix}::"))
                     .append(name)
+                    .append("::")
                     .append(pp_default_arg(prefix, env, ty, recs));
 
                 if recs.contains(type_name.as_str()) {
@@ -685,7 +692,7 @@ mod tests {
 
     use crate::candid_value_to_rust;
 
-    fn get_generated(type_path: &str, value_path: &str) -> String {
+    fn get_generated_from_path(type_path: &str, value_path: &str) -> String {
         let type_path = Path::new(type_path);
         let value_path = Path::new(value_path);
 
@@ -698,9 +705,75 @@ mod tests {
         candid_value_to_rust::generate_init_values("prefix", &env, &actor, Some(&arg_value))
     }
 
+    fn get_generated(type_path: &str, candid_value: &str) -> String {
+        let type_path = Path::new(type_path);
+
+        let (env, actor) = candid_parser::typing::pretty_check_file(type_path).unwrap();
+
+        if !candid_value.is_empty() {
+            let arg_value = candid_parser::parse_idl_args(candid_value).unwrap();
+
+            candid_value_to_rust::generate_init_values("prefix", &env, &actor, Some(&arg_value))
+        } else {
+            candid_value_to_rust::generate_init_values("prefix", &env, &actor, None)
+        }
+    }
+
     #[test]
     fn basic_numeric_value_test() {
-        let rust = get_generated("tests/numbers_type.did", "tests/numbers_value.did");
+        let rust = get_generated_from_path("tests/numbers_type.did", "tests/numbers_value.did");
+        println!("{rust}");
+
+        assert!(!rust.contains("todo"));
+        assert!(!rust.contains("::::"));
+    }
+
+    #[test]
+    fn test_todos() {
+        let rust = get_generated("tests/candid_types.did", "");
+        assert!(rust.contains("todo!"));
+        assert!(!rust.contains("::::"));
+
+        println!("{rust}");
+
+        let rust = get_generated(
+            "tests/candid_types.did",
+            "(variant { variant1 }, variant { tvar2 = variant { other_variant3 } }, record { rec_some = variant { variant2 }; rec_vec_text = vec {\"a\";\"b\"}; rec_opt = variant { variant4 }; rec_vec_opt = vec { variant { variant1 }; variant { variant1 } } })",
+        );
+
+        println!("{rust}");
+
+        assert!(!rust.contains("todo!"));
+        assert!(!rust.contains("::::"));
+    }
+
+    #[test]
+    fn test_opt_types() {
+        let rust = get_generated("tests/opt_types.did", "(record { rec_vec_opt = vec {} })");
+
+        println!("{rust}");
+
+        assert!(!rust.contains("todo"));
+
+        let rust = get_generated(
+            "tests/opt_types.did",
+            "(record { rec_some = variant { variant2 }; rec_other = variant { other_variant2 }; rec_opt_vec = opt vec {}; rec_opt = variant { variant4 }; rec_vec_opt = vec { opt variant { variant1 }; opt variant { variant3 } } })",
+        );
+
+        println!("{rust}");
+
+        assert!(!rust.contains("todo"));
+    }
+
+    #[test]
+    fn test_opt_variant() {
+        let rust = get_generated(
+            "tests/opt_variant.did",
+            "(record { rec_opt = variant { variant3 } })",
+        );
+
+        println!("{rust}");
+
         assert!(!rust.contains("todo"));
     }
 }
