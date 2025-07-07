@@ -1,10 +1,12 @@
-use std::path::PathBuf;
+// This is a generated test setup file.
+// Manual changes are possible, but you still need to make sure they are not lost, if the file is regenerated.
+// If possible, it is best to keep any additional manual test preparation steps outside, in `tests.rs`,
+// then this file can be regenerated without risk of losing work.
 
 use alloy::{
     hex::FromHex,
     primitives::{utils::parse_ether, Address, Uint, U256},
 };
-use candid::Principal;
 use ic_test::{EvmUser, IcpTest, IcpUser};
 
 use crate::bindings::{ {% for c in canisters %}
@@ -19,6 +21,7 @@ pub(crate) struct Env {
     pub evm_user: EvmUser,
 }
 
+/// The function sets up testing environment, deploys all the canisters and 
 pub(crate) async fn setup(icp_test: IcpTest) -> Env {
     let evm_user = icp_test.evm.test_user(0);
     let icp_user = icp_test.icp.test_user(0);
@@ -37,9 +40,6 @@ pub(crate) async fn setup(icp_test: IcpTest) -> Env {
     .call()
     .await;
 {% endfor %}
-
-    // Additional setup steps
-    // ...
 
     Env {
         icp_test,

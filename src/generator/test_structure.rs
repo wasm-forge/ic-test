@@ -30,6 +30,7 @@ struct TestSetupRsIcpEvmTemplate<'a> {
 
 #[derive(Template)]
 #[template(path = "icp/tests.rs.txt")]
+#[allow(unused)]
 struct TestsRsIcpTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
 }

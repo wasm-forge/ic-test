@@ -69,9 +69,13 @@ pub fn add_canister(
     let old_canister = setup.icp_setup.canisters.get(canister_name);
 
     if let Some(old_canister) = old_canister {
-        // reuse old init value if not provided
+        // reuse old init values if not provided
         if canister_setup.init_arg_file.is_none() {
             canister_setup.init_arg_file = old_canister.init_arg_file.clone();
+        }
+
+        if canister_setup.init_arg.is_none() {
+            canister_setup.init_arg = old_canister.init_arg.clone();
         }
     }
 
@@ -113,14 +117,11 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
             ));
         }
 
-        for (canister_name, canister) in canisters {
-            add_canister(canister_name, canister, setup)?;
-        }
+        // list all the canisters and suggest which ones to generate
+        let items: Vec<_> = setup.icp_setup.canisters.keys().collect();
 
-        if setup.ui {
-            // list all the canisters and suggest which ones to generate
-            let items: Vec<_> = setup.icp_setup.canisters.keys().collect();
-
+        // first, select canisters to generate, only then actually try to add those (check their Wasm file etc)
+        let selection = if setup.ui {
             let defaults: Vec<_> = setup
                 .icp_setup
                 .canisters
@@ -134,19 +135,32 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
                 ));
             }
 
-            let selection = MultiSelect::with_theme(&ColorfulTheme::default())
+            MultiSelect::with_theme(&ColorfulTheme::default())
                 .with_prompt("Which canister bindings do you want to generate?")
                 .items(&items)
                 .defaults(&defaults)
                 .interact()
-                .unwrap();
+                .unwrap()
+        } else {
+            // by default mark all canisters as selected
+            items.iter().enumerate().map(|(idx, _x)| idx).collect()
+        };
 
-            // configure generator selection
-            setup.icp_setup.canisters.iter_mut().enumerate().for_each(
-                |(idx, (_name, canister))| {
-                    canister.generate_bindings = selection.contains(&idx);
-                },
-            );
+        // configure generator selection
+        setup
+            .icp_setup
+            .canisters
+            .iter_mut()
+            .enumerate()
+            .for_each(|(idx, (_name, canister))| {
+                canister.generate_bindings = selection.contains(&idx);
+            });
+
+        // add canisters that have been selected
+        for (canister_name, canister) in canisters {
+            if setup.icp_setup.canisters.contains_key(canister_name) {
+                add_canister(canister_name, canister, setup)?;
+            }
         }
     }
 

@@ -1,4 +1,8 @@
 # Changelog
+## [v0.2.1]
+- fix: wrong todo! insertions
+- add github CI script
+- 
 
 ## [v0.2.0]
 - switch to alloy 1.0.17
