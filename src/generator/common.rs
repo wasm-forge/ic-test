@@ -150,7 +150,7 @@ pub fn find_wasm(
     canister_name: &str,
     canister: &DfxCanister,
     _setup: &IcpTestSetup,
-) -> Result<String> {
+) -> Result<Option<String>> {
     let mut files = Vec::new();
 
     // 1. direct wasm property search form the dfx setup
@@ -203,14 +203,13 @@ pub fn find_wasm(
 
     for wasm_file in &files {
         if wasm_file.exists() && wasm_file.is_file() {
-            let relative_wasm = get_relative_path(wasm_file.as_path())?;
-            return Ok(relative_wasm.to_string_lossy().to_string());
+            let relative_wasm =
+                get_relative_path(wasm_file.as_path()).expect("Failed to get relative path: {}");
+            return Ok(Some(relative_wasm.to_string_lossy().to_string()));
         }
     }
 
-    Err(anyhow::anyhow!(format!(
-        "The Wasm file for the canister '{canister_name}' was not found. Please ensure the project is fully built without errors, then try running ic-test again."
-    )))
+    Ok(None)
 }
 
 pub fn search_file_recursively(path: &Path, depth: u32, search_name: &str) -> Option<PathBuf> {
