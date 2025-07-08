@@ -1,11 +1,8 @@
-use std::path::PathBuf;
+//! This is a sample test file, it shows an example of how to create actual tests. 
+//! The file is only generated once and won't be overwritten.
 
-use alloy::{
-    hex::FromHex,
-    primitives::{utils::parse_ether, Address, Uint, U256},
-};
-use candid::Principal;
-use ic_test::{EvmUser, IcpTest, IcpUser};
+
+use ic_test::IcpTest;
 
 use crate::bindings::{ {% for c in canisters %}
     {{ c.var_name }}::{self, {{c.service_name}}},{% endfor %}{% for c in contracts %}
@@ -14,18 +11,13 @@ use crate::bindings::{ {% for c in canisters %}
 
 use crate::test_setup;
 
+/// This is an example test function. It shows how to create a test environment and use it to call canister methods.
+/// Update it to actually do testing.
 #[tokio::test]
 async fn test_() {
-    let test_setup::Env {
-        icp_test,
-        evm_user,{% for c in canisters %}
-        {{ c.var_name }},{% endfor %}{% for c in contracts %}
-        {{ c.var_name }},{% endfor %}
-    } = test_setup::setup(IcpTest::new().await).await;
+    let env = test_setup::setup(IcpTest::new().await).await;
 
-    // Your test code
+    // let result = env./*canister name*/./*canister method name*/(/*parameters*/).call().await;
+
     // ...
-
-    // example calls{% for c in canisters %}
-    // let result = {{ c.var_name }}./*canister method name*/().call().await;{% endfor %}
 }

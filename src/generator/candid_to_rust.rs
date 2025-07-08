@@ -62,12 +62,11 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
                 config.set_canister_id(Principal::from_text(&specified_id).unwrap());
             }
 
-            let mut path = PathBuf::new();
-            path.push(canister.wasm.clone());
+            let wasm_path_str = canister.wasm.clone().unwrap_or_else(|| panic!("Cannot generate canister {canister_name} because its Wasm path is not provided"));
 
-            let path = get_path_relative_to_test_dir(path.as_path(), &test_folder)?;
+            let wasm_path = get_path_relative_to_test_dir(Path::new(&wasm_path_str), &test_folder)?;
 
-            config.set_canister_wasm_path(path.to_string_lossy().to_string());
+            config.set_canister_wasm_path(wasm_path.to_string_lossy().to_string());
 
             let (env, actor) =
                 candid_parser::typing::pretty_check_file(&expand_path(Path::new(candid_path)))
@@ -105,23 +104,33 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
     Ok(())
 }
 
-fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Error> {
-    let mut mod_file: PathBuf = bindings_path.to_path_buf();
-    mod_file.push("mod.rs");
-
+pub fn get_generatable_canisters(setup: &IcpTestSetup) -> Vec<CanisterSetup> {
     let canisters: Vec<CanisterSetup> = setup
         .icp_setup
         .canisters
         .iter()
-        .filter(|x| x.1.generate_bindings)
-        .map(|x| {
-            let mut x = x.1.clone();
-            let path = Path::new(&x.wasm);
+        .filter(|x| x.1.generate_bindings && x.1.wasm.is_some())
+        .map(|(canister_name, x)| {
+            let mut x = x.clone();
+
+            let wasm = x.wasm.clone().unwrap_or_else(|| {
+                panic!("Trying to generate canister {canister_name} with no Wasm defined!")
+            });
+
+            let path = Path::new(&wasm);
             let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
-            x.wasm = relative.to_string_lossy().to_string();
+            x.wasm = Some(relative.to_string_lossy().to_string());
             x
         })
         .collect();
+    canisters
+}
+
+fn generate_mod_rs(setup: &IcpTestSetup, bindings_path: &Path) -> Result<(), Error> {
+    let mut mod_file: PathBuf = bindings_path.to_path_buf();
+    mod_file.push("mod.rs");
+
+    let canisters = get_generatable_canisters(setup);
 
     // are we using EVM template?
     if let Some(evm_setup) = &setup.evm_setup {

@@ -7,6 +7,7 @@ use log::info;
 
 use crate::{
     arguments::{Command, IcpTestArgs},
+    candid_to_rust::get_generatable_canisters,
     common::{get_path_relative_to_test_dir, get_test_project_dir},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
@@ -30,6 +31,7 @@ struct TestSetupRsIcpEvmTemplate<'a> {
 
 #[derive(Template)]
 #[template(path = "icp/tests.rs.txt")]
+#[allow(unused)]
 struct TestsRsIcpTemplate<'a> {
     canisters: &'a Vec<CanisterSetup>,
 }
@@ -93,19 +95,7 @@ pub fn generate_test_setup_test_rs(
     let src_dir = project_dir.join("src");
     fs::create_dir_all(&src_dir)?;
 
-    let canisters: Vec<CanisterSetup> = setup
-        .icp_setup
-        .canisters
-        .iter()
-        .filter(|x| x.1.generate_bindings)
-        .map(|x| {
-            let mut x = x.1.clone();
-            let path = Path::new(&x.wasm);
-            let relative = get_path_relative_to_test_dir(path, &setup.test_folder).unwrap();
-            x.wasm = relative.to_string_lossy().to_string();
-            x
-        })
-        .collect();
+    let canisters: Vec<CanisterSetup> = get_generatable_canisters(setup);
 
     // generate test_setup.rs
     if !test_setup_rs.exists() || setup.forced {

@@ -118,21 +118,21 @@ pub fn get_pull_folder(canister: &DfxCanister) -> Option<PathBuf> {
 pub fn find_candid(canister_name: &str, canister: &DfxCanister) -> Option<PathBuf> {
     let mut files = Vec::new();
 
-    // 1. try finding the candid file for the pulled canister
+    // 1. try finding the candid in the dfx config
+    if let Some(candid) = &canister.candid {
+        files.push(PathBuf::from(candid.clone()));
+    }
+
+    // 2. try finding the candid file for the pulled canister
     let pull_dir = get_pull_folder(canister);
     if let Some(pull) = pull_dir {
         files.push(pull.join("service.did"));
     }
 
-    // 2. try using dfx cached .did file
+    // 3. try using dfx cached .did file
     files.push(PathBuf::from(format!(
         ".dfx/local/canisters/{canister_name}/constructor.did"
     )));
-
-    // direct candid search
-    if let Some(candid) = &canister.candid {
-        files.push(PathBuf::from(candid.clone()));
-    }
 
     for file in files {
         if file.exists() && file.is_file() {
@@ -150,9 +150,40 @@ pub fn find_wasm(
     canister_name: &str,
     canister: &DfxCanister,
     _setup: &IcpTestSetup,
-) -> Result<String> {
+) -> Result<Option<String>> {
     let mut files = Vec::new();
 
+    // 1. direct wasm property search form the dfx setup
+    if let Some(wasm) = &canister.wasm {
+        files.push(PathBuf::from(wasm.clone()));
+    }
+
+    if let Some(wasm) = &canister.wasm {
+        if wasm.ends_with(".wasm") {
+            files.push(PathBuf::from(wasm.to_owned() + ".gz"));
+        }
+    }
+
+    // 2. try checking the wasm target folder
+    let canister_dir = get_main_project_dir()?.join(format!(
+        "target/wasm32-unknown-unknown/release/{canister_name}.wasm"
+    ));
+    files.push(canister_dir);
+    let canister_dir = get_main_project_dir()?.join(format!(
+        "target/wasm32-unknown-unknown/release/{canister_name}.wasm.gz"
+    ));
+    files.push(canister_dir);
+
+    let canister_dir = get_main_project_dir()?.join(format!(
+        "target/wasm32-unknown-unknown/debug/{canister_name}.wasm"
+    ));
+    files.push(canister_dir);
+    let canister_dir = get_main_project_dir()?.join(format!(
+        "target/wasm32-unknown-unknown/debug/{canister_name}.wasm.gz"
+    ));
+    files.push(canister_dir);
+
+    // 3. try checking the .dfx folder
     let canister_dir = get_main_project_dir()?.join(format!(
         ".dfx/local/canisters/{canister_name}/{canister_name}.wasm"
     ));
@@ -170,21 +201,15 @@ pub fn find_wasm(
         files.push(dir.join("canister.wasm.gz"));
     }
 
-    // direct wasm property search
-    if let Some(wasm) = &canister.wasm {
-        files.push(PathBuf::from(wasm.clone()));
-    }
-
     for wasm_file in &files {
         if wasm_file.exists() && wasm_file.is_file() {
-            let relative_wasm = get_relative_path(wasm_file.as_path())?;
-            return Ok(relative_wasm.to_string_lossy().to_string());
+            let relative_wasm =
+                get_relative_path(wasm_file.as_path()).expect("Failed to get relative path: {}");
+            return Ok(Some(relative_wasm.to_string_lossy().to_string()));
         }
     }
 
-    Err(anyhow::anyhow!(format!(
-        "The Wasm file for the canister '{canister_name}' was not found. Please ensure the project is fully built without errors, then try running ic-test again."
-    )))
+    Ok(None)
 }
 
 pub fn search_file_recursively(path: &Path, depth: u32, search_name: &str) -> Option<PathBuf> {

@@ -146,6 +146,7 @@ pub struct CanisterSetup {
 
     #[serde(skip)]
     pub init_args_rust: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub candid_path: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -156,7 +157,8 @@ pub struct CanisterSetup {
     #[serde(default)]
     pub generate_bindings: bool,
 
-    pub wasm: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wasm: Option<String>,
     pub specified_id: Option<String>,
 }
 
@@ -254,7 +256,7 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
                     }
 
                     if let Some(wasm) = wasm {
-                        canister.wasm = wasm.clone();
+                        canister.wasm = Some(wasm.clone());
                     }
                 }
 

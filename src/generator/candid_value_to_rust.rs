@@ -763,6 +763,7 @@ mod tests {
         println!("{rust}");
 
         assert!(!rust.contains("todo"));
+        assert!(!rust.contains("::::"));
     }
 
     #[test]
@@ -775,5 +776,6 @@ mod tests {
         println!("{rust}");
 
         assert!(!rust.contains("todo"));
+        assert!(!rust.contains("::::"));
     }
 }

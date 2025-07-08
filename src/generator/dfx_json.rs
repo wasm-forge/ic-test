@@ -42,12 +42,20 @@ pub fn add_canister(
     canister: &DfxCanister,
     setup: &mut IcpTestSetup,
 ) -> Result<(), anyhow::Error> {
-    // skip frontend canisters
-    let generate_bindings = canister.canister_type != Some("asset".to_string());
+    // filter out asset canisters
+    if canister.canister_type == Some("asset".to_string()) {
+        return Ok(());
+    }
+
+    // if canister exists already,
+    let old_canister = setup.icp_setup.canisters.get(canister_name);
 
     let candid = find_candid(canister_name, canister).map(|x| x.to_string_lossy().to_string());
 
     let wasm = find_wasm(canister_name, canister, setup)?;
+
+    let generate_bindings =
+        wasm.is_some() && candid.is_some() && old_canister.is_none_or(|c| c.generate_bindings);
 
     let mut canister_setup = CanisterSetup {
         name: canister_name.to_string(),
@@ -65,13 +73,14 @@ pub fn add_canister(
 
     canister_setup.specified_id = canister.specified_id.clone();
 
-    // if canister exists already,
-    let old_canister = setup.icp_setup.canisters.get(canister_name);
-
     if let Some(old_canister) = old_canister {
-        // reuse old init value if not provided
+        // reuse old init values if not provided
         if canister_setup.init_arg_file.is_none() {
             canister_setup.init_arg_file = old_canister.init_arg_file.clone();
+        }
+
+        if canister_setup.init_arg.is_none() {
+            canister_setup.init_arg = old_canister.init_arg.clone();
         }
     }
 
@@ -97,6 +106,7 @@ fn check_dfx_json_exists(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
 // gather canister information from dfx.json
 pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     if setup.icp_setup.skip_dfx_json {
+        // keep canister setup "as is"
         return Ok(());
     }
 
@@ -106,42 +116,44 @@ pub fn add_canisters(setup: &mut IcpTestSetup) -> anyhow::Result<()> {
     let json_string = fs::read_to_string(dfx_json_path)?;
     let json = from_str::<DfxJson>(&json_string)?;
 
-    if let Some(canisters) = &json.canisters {
-        if canisters.is_empty() {
+    if let Some(dfx_canisters) = &json.canisters {
+        if dfx_canisters.is_empty() {
             return Err(anyhow::anyhow!(
                 "No canisters were found in the 'dfx.json' file!"
             ));
         }
 
-        for (canister_name, canister) in canisters {
+        // There are some canisters in dfx.json,
+        // there might be some canisters already in setup,
+        //
+        // 1. add all the canisters that we find to the ic-test.json (filter out asset canisters)
+        // 2. select canisters to generate from ther ic-test.json canister list
+        // 3. if a canister was selected and doesn't have wasm or candid found, report an error (in non-ui mode skip canisters without wasm or candid defined)
+
+        // add all canisters that have been found in dfx.json
+        for (canister_name, canister) in dfx_canisters {
             add_canister(canister_name, canister, setup)?;
         }
 
+        // additionally select of deselect canisters to generate
         if setup.ui {
             // list all the canisters and suggest which ones to generate
-            let items: Vec<_> = setup.icp_setup.canisters.keys().collect();
+            let selectable_canister_names: Vec<_> = setup.icp_setup.canisters.keys().collect();
 
             let defaults: Vec<_> = setup
                 .icp_setup
                 .canisters
                 .values()
-                .map(|canister| canister.generate_bindings)
+                .map(|x| x.generate_bindings)
                 .collect();
-
-            if defaults.is_empty() {
-                return Err(anyhow::anyhow!(
-                    "No compatible canisters were found in the 'dfx.json' file!"
-                ));
-            }
 
             let selection = MultiSelect::with_theme(&ColorfulTheme::default())
                 .with_prompt("Which canister bindings do you want to generate?")
-                .items(&items)
+                .items(&selectable_canister_names)
                 .defaults(&defaults)
                 .interact()
                 .unwrap();
 
-            // configure generator selection
             setup.icp_setup.canisters.iter_mut().enumerate().for_each(
                 |(idx, (_name, canister))| {
                     canister.generate_bindings = selection.contains(&idx);
