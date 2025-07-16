@@ -1,4 +1,11 @@
 # Changelog
+
+
+## [v0.1.14]
+- set ic-cdk v0.17.2
+- add improvements from v0.2.1
+
+
 ## [v0.2.1]
 - fix: wrong todo! insertions
 - add github CI script
@@ -11,3 +18,4 @@
 - switch to alloy 1.0.17
 - switch to ic-cdk 0.18.5
 - Fix missing evm documentation
+

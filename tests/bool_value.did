@@ -1,0 +1,7 @@
+(
+  record {
+    some_bool_t = true;
+    some_bool_f = false;
+    some_opt_bool = opt true;
+  }
+)

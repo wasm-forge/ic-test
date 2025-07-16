@@ -10,6 +10,16 @@
     some_number7 = 345678;
     some_number8 = vec { 1; 2; 3 };
     some_number9 = vec {  };
-
+    some_number10 = 10;
+    some_number11 = 11;
+    some_number12 = 12: nat;
+    some_number13 = 13: int;
+    some_u8 = 23: nat8;
+    some_u8_n = 33;
+    some_float32 = 33.12: float32;
+    some_float32_2 = 33.12;
+    some_float32_3 = 33;
+    some_float64 = 33.32;
+    some_float64_2 = -33;
   }
 )

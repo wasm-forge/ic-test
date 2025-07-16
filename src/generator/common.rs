@@ -103,9 +103,8 @@ pub fn get_pull_folder(canister: &DfxCanister) -> Option<PathBuf> {
     if let Some(canister_type) = &canister.canister_type {
         if canister_type == "pull" {
             if let Some(id) = &canister.id {
-                let mut cache_canister_dir =
-                    dirs::home_dir().expect("Cound not find the home directory!");
-                cache_canister_dir.push(format!(".cache/dfinity/pulled/{id}"));
+                let cache_canister_dir =
+                    PathBuf::new().join(format!("$HOME/.cache/dfinity/pulled/{id}"));
 
                 return Some(cache_canister_dir);
             }
@@ -194,6 +193,7 @@ pub fn find_wasm(
     ));
     files.push(canister_dir);
 
+    // 4. try the pull folder
     let pull_dir = get_pull_folder(canister);
 
     if let Some(dir) = pull_dir {
