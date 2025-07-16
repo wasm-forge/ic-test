@@ -1,0 +1,7 @@
+type InitArg = record {
+  some_bool_t: bool;
+  some_bool_f: bool;
+  some_opt_bool: opt bool;
+  some_opt_bool2: opt bool;
+};
+service : (InitArg) -> { greet : () -> (opt text) query }

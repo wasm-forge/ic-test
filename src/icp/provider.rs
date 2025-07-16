@@ -8,7 +8,7 @@
 //! canister lifecycles during testing. These interactions are wrapped in type-safe, ergonomic
 //! methods that surface consistent error reporting via `RejectResponse`.
 
-use ic_cdk::management_canister::{CanisterId, CanisterInstallMode, CanisterSettings};
+use ic_cdk::api::management_canister::main::{CanisterId, CanisterInstallMode, CanisterSettings};
 pub use pocket_ic::{ErrorCode, RejectCode, RejectResponse};
 
 use crate::convert;

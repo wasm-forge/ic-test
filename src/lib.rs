@@ -126,6 +126,7 @@
 //! *Update the canister backend:*
 //!
 //! ```rust
+//!
 //! use std::cell::RefCell;
 //!
 //! #[ic_cdk::query]

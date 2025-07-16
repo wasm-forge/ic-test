@@ -7,7 +7,8 @@
 use std::{marker::PhantomData, sync::Arc};
 
 use candid::{CandidType, Principal};
-use ic_cdk::management_canister::CanisterSettings;
+
+use ic_cdk::api::management_canister::main::CanisterSettings;
 use pocket_ic::nonblocking::PocketIc;
 use serde::Deserialize;
 

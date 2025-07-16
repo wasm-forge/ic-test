@@ -164,16 +164,23 @@ fn pp_init_arg<'a>(
                 }
                 _ => pp_value_type_error_comment(arg_type, arg_value),
             }
-        }
+        },
         TypeInner::Var(type_name) => {
             let name = ident(type_name, Some(Case::Pascal));
 
             let ty = env.0.get(type_name);
 
             if let Some(ty) = &ty {
+
+                // do not use separator if the subtype is fields 
+                let separator = match ty.0.as_ref() {
+                    TypeInner::Record(_fields) => "",
+                    _ => "::",
+                };
+
                 let init = RcDoc::text(format!("{prefix}::"))
                     .append(name)
-                    .append("::")
+                    .append(separator)
                     .append(pp_init_arg(prefix, env, ty, Some(arg_value), recs));
 
                 if recs.contains(type_name.as_str()) {
@@ -182,9 +189,9 @@ fn pp_init_arg<'a>(
                     init
                 }
             } else {
-                enclose("todo!() /* var type '", name, "' not found */")
+                enclose("::todo!() /* var type '", name, "' not found */")
             }
-        }
+        },
         TypeInner::Variant(fields) => match arg_value {
             IDLValue::Variant(variant_value) => {
                 let mut iter = fields.iter();
@@ -205,7 +212,7 @@ fn pp_init_arg<'a>(
                         )),
                     }
                 } else {
-                    RcDoc::text("todo!()")
+                    RcDoc::text(format!("::todo!() /* label '{id}' not part of the variant fields */"))
                 }
 
                 //pp_init_variant_field(env, field.ty, variant_value, recs)
@@ -337,22 +344,30 @@ fn pp_init_arg<'a>(
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Nat => match arg_value {
-            IDLValue::Nat(v) => RcDoc::text(format!("candid::Nat::from_str(\"{v}\")")),
-            IDLValue::Number(number) => RcDoc::text(format!("candid::Nat::from_str(\"{number})\"")),
+            IDLValue::Nat(number) => RcDoc::text(format!(
+                "<candid::Nat as std::str::FromStr>::from_str(\"{number}\").expect(\"Parsing error\")"
+            )),
+            IDLValue::Number(number) => RcDoc::text(format!(
+                "<candid::Nat as std::str::FromStr>::from_str(\"{number}\").expect(\"Parsing error\")"
+            )),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Int => match arg_value {
-            IDLValue::Int(v) => RcDoc::text(format!("candid::Int::from_str({v})")),
-            IDLValue::Number(number) => RcDoc::text(format!("candid::Int::from_str({number})")),
+            IDLValue::Int(number) => RcDoc::text(format!("<candid::Int as std::str::FromStr>::from_str(\"{number}\").expect(\"Parsing error\")")),
+            IDLValue::Number(number) => RcDoc::text(format!("<candid::Int as std::str::FromStr>::from_str(\"{number}\").expect(\"Parsing error\")")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
 
         TypeInner::Float32 => match arg_value {
             IDLValue::Float32(v) => RcDoc::text(format!("{v}")),
+            IDLValue::Float64(v) => RcDoc::text(format!("{v}")),
+            IDLValue::Number(v) => RcDoc::text(format!("{v}.0")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
         TypeInner::Float64 => match arg_value {
+            IDLValue::Float32(v) => RcDoc::text(format!("{v}")),
             IDLValue::Float64(v) => RcDoc::text(format!("{v}")),
+            IDLValue::Number(v) => RcDoc::text(format!("{v}.0")),
             _ => pp_value_type_error_comment(arg_type, arg_value),
         },
 
@@ -624,9 +639,15 @@ fn pp_default_arg<'a>(
             let ty = env.0.get(type_name);
 
             if let Some(ty) = &ty {
+                // do not use separator if the subtype is fields
+                let separator = match ty.0.as_ref() {
+                    TypeInner::Record(_fields) => "",
+                    _ => "::",
+                };
+
                 let init = RcDoc::text(format!("{prefix}::"))
                     .append(name)
-                    .append("::")
+                    .append(separator)
                     .append(pp_default_arg(prefix, env, ty, recs));
 
                 if recs.contains(type_name.as_str()) {
@@ -681,14 +702,15 @@ fn pp_default_record_field<'a>(
     _recs: &'a RecPoints,
 ) -> RcDoc<'a> {
     pp_label(&field.id, false, "")
-        .append(kwd(": "))
-        //.append(pp_default_arg(prefix, env, &field.ty, recs))
-        .append("todo!()")
+        .append(":")
+        .append(" todo!()")
 }
 
 #[cfg(test)]
 mod tests {
     use std::path::Path;
+
+    use regress::Regex;
 
     use crate::candid_value_to_rust;
 
@@ -719,51 +741,70 @@ mod tests {
         }
     }
 
+    fn rust_check(rust: &str) {
+        // patterns that we do not like:
+        let bad_patterns = [r"\w+todo!", r"::::", r"::\s*\{"];
+
+        for pattern in bad_patterns {
+            let re = Regex::new(pattern).unwrap();
+
+            if re.find(rust).is_some() {
+                panic!("Rust generator failed:\n\n{rust}\n\nFound bad pattern: '{pattern}'")
+            }
+        }
+    }
+
     #[test]
     fn basic_numeric_value_test() {
         let rust = get_generated_from_path("tests/numbers_type.did", "tests/numbers_value.did");
-        println!("{rust}");
+        rust_check(&rust);
+    }
 
-        assert!(!rust.contains("todo"));
-        assert!(!rust.contains("::::"));
+    #[test]
+    fn bool_values_test() {
+        let rust = get_generated_from_path("tests/bool_type.did", "tests/bool_value.did");
+        rust_check(&rust);
+        println!("{rust}");
     }
 
     #[test]
     fn test_todos() {
         let rust = get_generated("tests/candid_types.did", "");
-        assert!(rust.contains("todo!"));
-        assert!(!rust.contains("::::"));
-
-        println!("{rust}");
+        rust_check(&rust);
 
         let rust = get_generated(
             "tests/candid_types.did",
             "(variant { variant1 }, variant { tvar2 = variant { other_variant3 } }, record { rec_some = variant { variant2 }; rec_vec_text = vec {\"a\";\"b\"}; rec_opt = variant { variant4 }; rec_vec_opt = vec { variant { variant1 }; variant { variant1 } } })",
         );
 
-        println!("{rust}");
+        rust_check(&rust);
+    }
 
-        assert!(!rust.contains("todo!"));
-        assert!(!rust.contains("::::"));
+    #[test]
+    fn test_defaults() {
+        let rust = get_generated("tests/default_types.did", "");
+        rust_check(&rust);
+
+        let rust = get_generated(
+            "tests/candid_types.did",
+            "(variant { variant1 }, variant { tvar2 = variant { other_variant3 } }, record { rec_opt = variant { variant4 }; rec_vec_opt = vec { } })",
+        );
+
+        rust_check(&rust);
     }
 
     #[test]
     fn test_opt_types() {
         let rust = get_generated("tests/opt_types.did", "(record { rec_vec_opt = vec {} })");
 
-        println!("{rust}");
-
-        assert!(!rust.contains("todo"));
+        rust_check(&rust);
 
         let rust = get_generated(
             "tests/opt_types.did",
             "(record { rec_some = variant { variant2 }; rec_other = variant { other_variant2 }; rec_opt_vec = opt vec {}; rec_opt = variant { variant4 }; rec_vec_opt = vec { opt variant { variant1 }; opt variant { variant3 } } })",
         );
 
-        println!("{rust}");
-
-        assert!(!rust.contains("todo"));
-        assert!(!rust.contains("::::"));
+        rust_check(&rust);
     }
 
     #[test]
@@ -773,9 +814,6 @@ mod tests {
             "(record { rec_opt = variant { variant3 } })",
         );
 
-        println!("{rust}");
-
-        assert!(!rust.contains("todo"));
-        assert!(!rust.contains("::::"));
+        rust_check(&rust);
     }
 }

@@ -48,10 +48,17 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
         }
 
         if let Some(candid_path) = &canister.candid_path {
-            let mut canister_file = bindings_path.clone();
-            canister_file.push(format!("{}.rs", &canister.var_name));
+            // if candid_path begins with $HOME, exchange it with the actual home folder
+            let mut candid_path = candid_path.clone();
 
-            // try parse candid file
+            if candid_path.starts_with("$HOME") {
+                let home = dirs::home_dir().expect("Cound not find the home directory!");
+                candid_path = candid_path.replace("$HOME", home.to_string_lossy().as_ref());
+            }
+
+            let canister_file = bindings_path.join(format!("{}.rs", &canister.var_name));
+
+            // try parsing candid file
             let mut config = code_generator::Config::new();
 
             config.set_target(code_generator::Target::Builder);
@@ -69,7 +76,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             config.set_canister_wasm_path(wasm_path.to_string_lossy().to_string());
 
             let (env, actor) =
-                candid_parser::typing::pretty_check_file(&expand_path(Path::new(candid_path)))
+                candid_parser::typing::pretty_check_file(&expand_path(Path::new(&candid_path)))
                     .unwrap();
 
             let values = if let Some(values) = canister.init_arg.clone() {
