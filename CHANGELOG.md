@@ -1,10 +1,11 @@
 # Changelog
 
-
 ## [v0.1.14]
-- set ic-cdk v0.17.2
+- set ic-cdk to v0.17.2
 - add improvements from v0.2.1
-
+- fix more generator errors
+- better test coverage
+- better evm support
 
 ## [v0.2.1]
 - fix: wrong todo! insertions

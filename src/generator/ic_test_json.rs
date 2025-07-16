@@ -170,14 +170,35 @@ pub struct ContractSetup {
 }
 
 pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
-    let path = Path::new(&args.ic_test_json);
+    let ic_test_json_path = Path::new(&args.ic_test_json);
 
-    let mut setup = if !path.exists() {
+    let mut setup = if !ic_test_json_path.exists() {
         // init with default values
-        let mut setup = IcpTestSetup::default();
+        IcpTestSetup::default()
+    } else {
+        // try opening config from the ic-test.json
+        let json_string = fs::read_to_string(&args.ic_test_json)?;
 
+        from_str::<IcpTestSetup>(&json_string)?
+    };
+
+    if let Some(_evm) = &mut setup.evm_setup {
+        //
+    } else {
+        // search for foundry.toml
+        debug!("Searching for foundry.toml...");
         // we need to decide if we want to work with EVM, by default it depends on whether we can find the foundry.toml file
         let foundry_toml = search_file_recursively(Path::new("."), 3, crate::common::FOUNDRY_TOML);
+
+        // TODO: if the foundry.toml file was not found, ask user for an explicit path from user
+        // TODO: if multiple files were found, allow user to select one
+        // TODO: support option for the foundry.toml file path
+
+        if let Some(path) = &foundry_toml {
+            debug!("foundry.toml found: {path:?}");
+        } else {
+            debug!("foundry.toml not found!");
+        }
 
         if let Some(f) = foundry_toml {
             let path = f.parent().expect("could not find foundry.toml parent");
@@ -188,14 +209,7 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
 
             setup.evm_setup = Some(evm);
         }
-
-        setup
-    } else {
-        // try opening config from the ic-test.json
-        let json_string = fs::read_to_string(&args.ic_test_json)?;
-
-        from_str::<IcpTestSetup>(&json_string)?
-    };
+    }
 
     setup.ui = args.ui == Some(true);
 

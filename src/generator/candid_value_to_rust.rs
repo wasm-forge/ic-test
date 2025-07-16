@@ -164,7 +164,7 @@ fn pp_init_arg<'a>(
                 }
                 _ => pp_value_type_error_comment(arg_type, arg_value),
             }
-        }
+        },
         TypeInner::Var(type_name) => {
             let name = ident(type_name, Some(Case::Pascal));
 
@@ -191,7 +191,7 @@ fn pp_init_arg<'a>(
             } else {
                 enclose("::todo!() /* var type '", name, "' not found */")
             }
-        }
+        },
         TypeInner::Variant(fields) => match arg_value {
             IDLValue::Variant(variant_value) => {
                 let mut iter = fields.iter();
@@ -785,14 +785,10 @@ mod tests {
         let rust = get_generated("tests/default_types.did", "");
         rust_check(&rust);
 
-        println!("{rust}");
-
         let rust = get_generated(
             "tests/candid_types.did",
             "(variant { variant1 }, variant { tvar2 = variant { other_variant3 } }, record { rec_opt = variant { variant4 }; rec_vec_opt = vec { } })",
         );
-
-        println!("{rust}");
 
         rust_check(&rust);
     }

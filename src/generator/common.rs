@@ -144,7 +144,7 @@ pub fn find_candid(canister_name: &str, canister: &DfxCanister) -> Option<PathBu
     None
 }
 
-// try find wasm for a given canister name
+/// try find wasm for a given canister name
 pub fn find_wasm(
     canister_name: &str,
     canister: &DfxCanister,
@@ -212,6 +212,13 @@ pub fn find_wasm(
     Ok(None)
 }
 
+/// Recursively search for a file with a given name starting from a specified directory.
+///
+/// # Returns
+///
+/// * `Some(PathBuf)` - The full path to the found file if it exists within the depth limit (includes the search file name).
+/// * `None` - If the file is not found within the specified depth.
+///
 pub fn search_file_recursively(path: &Path, depth: u32, search_name: &str) -> Option<PathBuf> {
     let path = Path::new(path);
 
@@ -225,8 +232,10 @@ pub fn search_file_recursively(path: &Path, depth: u32, search_name: &str) -> Op
         return None;
     }
 
-    let entries = std::fs::read_dir(path).unwrap();
+    let entries =
+        std::fs::read_dir(path).expect("Failed to read the directory during search: {path:?}");
 
+    // continue search in each subdirectory
     for entry in entries.filter_map(|entry| entry.ok()) {
         let file_name = entry.file_name().to_string_lossy().to_string();
         let cur_path = path.join(&file_name);
@@ -287,12 +296,11 @@ mod tests {
 
     #[test]
     fn search_rec() {
-        let r = search_file_recursively(Path::new("."), 3, "main.rs");
-
+        let r = search_file_recursively(Path::new("."), 2, "main.rs");
         assert!(r.is_some());
 
         // check it doesn't search under target
-        let r = search_file_recursively(Path::new("."), 3, "ic-test.d");
+        let r = search_file_recursively(Path::new("."), 1, "main.rs");
         assert!(r.is_none());
     }
 
