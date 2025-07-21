@@ -9,13 +9,14 @@ use convert_case::{Case, Casing};
 use crate::{dfx_json::DfxCanister, ic_test_json::IcpTestSetup};
 
 pub const FOUNDRY_TOML: &str = "foundry.toml";
+pub const HOME_VAR: &str = "$HOME";
 
-//
+/// Return user HOME directory
 pub fn get_home_dir() -> PathBuf {
     dirs::home_dir().expect("Home directory not found!")
 }
 
-//
+/// Exchange $HOME prefix with the actual path
 pub fn expand_path(path: &Path) -> PathBuf {
     let path_str = path.to_string_lossy();
 
@@ -29,7 +30,6 @@ pub fn expand_path(path: &Path) -> PathBuf {
     ret
 }
 
-//
 pub fn get_main_project_dir() -> Result<PathBuf> {
     // TODO: check if we need to return one of the parent folders
     let cur_dir = env::current_dir()?;
@@ -67,7 +67,7 @@ pub fn get_relative_path(target_path: &Path) -> Result<PathBuf> {
 
             let stripped = target_path.strip_prefix(home.as_path())?;
 
-            let home = PathBuf::from("$HOME");
+            let home = PathBuf::from(HOME_VAR);
             home.join(stripped)
         }
     } else {
@@ -81,7 +81,7 @@ pub fn get_relative_path(target_path: &Path) -> Result<PathBuf> {
 
 // path prefix to get from the test folder to the target path
 pub fn get_path_relative_to_test_dir(target_path: &Path, test_folder: &str) -> Result<PathBuf> {
-    if target_path.starts_with("$HOME") || target_path.starts_with("/") {
+    if target_path.starts_with(HOME_VAR) || target_path.starts_with("/") {
         // do not try to process the absolute paths
         return Ok(PathBuf::new().join(target_path));
     }
@@ -105,7 +105,7 @@ pub fn get_pull_folder(canister: &DfxCanister) -> Option<PathBuf> {
         if canister_type == "pull" {
             if let Some(id) = &canister.id {
                 let cache_canister_dir =
-                    PathBuf::new().join(format!("$HOME/.cache/dfinity/pulled/{id}"));
+                    PathBuf::new().join(format!("{HOME_VAR}/.cache/dfinity/pulled/{id}"));
 
                 return Some(cache_canister_dir);
             }
@@ -196,6 +196,9 @@ pub fn find_wasm(
     }
 
     for wasm_file in &files {
+        // expand path in case it contains $HOME
+        let wasm_file = expand_path(wasm_file.as_path());
+
         if wasm_file.exists() && wasm_file.is_file() {
             let relative_wasm =
                 get_relative_path(wasm_file.as_path()).expect("Failed to get relative path: {}");

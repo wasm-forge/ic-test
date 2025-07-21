@@ -10,7 +10,7 @@ use wf_cdk_bindgen::code_generator;
 
 use crate::{
     candid_value_to_rust,
-    common::{expand_path, get_path_relative_to_test_dir},
+    common::{expand_path, get_path_relative_to_test_dir, HOME_VAR},
     ic_test_json::{CanisterSetup, ContractSetup, IcpTestSetup},
 };
 
@@ -51,9 +51,9 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
             // if candid_path begins with $HOME, exchange it with the actual home folder
             let mut candid_path = candid_path.clone();
 
-            if candid_path.starts_with("$HOME") {
+            if candid_path.starts_with(HOME_VAR) {
                 let home = dirs::home_dir().expect("Cound not find the home directory!");
-                candid_path = candid_path.replace("$HOME", home.to_string_lossy().as_ref());
+                candid_path = candid_path.replace(HOME_VAR, home.to_string_lossy().as_ref());
             }
 
             let canister_file = bindings_path.join(format!("{}.rs", &canister.var_name));
