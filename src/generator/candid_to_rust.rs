@@ -65,6 +65,10 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
             config.set_service_name(canister.service_name.clone());
 
+            config.set_type_attributes(
+                "#[derive(CandidType, Clone, Debug, Deserialize, PartialEq)]".to_string(),
+            );
+
             if let Some(specified_id) = canister.specified_id.clone() {
                 config.set_canister_id(Principal::from_text(&specified_id).unwrap());
             }
