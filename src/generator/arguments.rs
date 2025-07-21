@@ -85,6 +85,10 @@ pub struct IcpTestArgs {
     #[arg(long, default_value_t = String::from("ic-test.json"))]
     pub ic_test_json: String,
 
+    /// Path to dfx.json, where to gather information on existing canisters
+    #[arg(long)]
+    pub dfx_json: Option<String>,
+
     /// Do not use dfx.json to gather information on the available canisters
     #[arg(long)]
     pub skip_dfx_json: Option<bool>,

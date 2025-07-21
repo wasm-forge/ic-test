@@ -28,7 +28,7 @@ use tokio::time::sleep;
 /// # Parameters
 ///
 /// - `pocket_ic`: A weak reference to a running PocketIC instance.
-/// - `anvil`: The URL to which HTTP requests should be forwarded (e.g. Anvil's RPC endpoint).
+/// - `anvil`: The URL to which HTTP requests should be forwarded.
 /// - `rpc_nodes`: A list of allowed URLs that the handler is authorized to forward.
 ///
 /// # Behavior
@@ -53,6 +53,7 @@ pub async fn handle_http_outcalls(
 
         for request in requests {
             let url = request.url.clone();
+
             if rpc_nodes.contains(&url) {
                 let response = forward_http(request, anvil.to_string()).await;
                 pic.mock_canister_http_response(response).await;

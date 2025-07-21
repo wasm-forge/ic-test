@@ -133,5 +133,6 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
         skip_foundry_toml: None,
         ui: Some(true),
         root: None,
+        dfx_json: None,
     })
 }

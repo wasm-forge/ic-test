@@ -310,14 +310,60 @@ impl IcpTest {
         };
 
         #[cfg(feature = "evm")]
-        let pic = Arc::downgrade(&result.icp.pic);
+        {
+            let pic = Arc::downgrade(&result.icp.pic);
 
-        #[cfg(feature = "evm")]
-        task::spawn(handle_http_outcalls(
-            pic,
-            result.evm.rpc_url(),
-            vec![result.evm.rpc_url().to_string()],
-        ));
+            let urls: Vec<String> = vec![
+                "http://127.0.0.1:8545",
+                "http://localhost:8545",
+                "https://eth.llamarpc.com",
+                "https://sepolia.infura.io/v3/b9794ad1ddf84dfb8c34d6bb5dca2001",
+                "https://rpc.holesky.ethpandaops.io",
+                "https://rpc.hoodi.ethpandaops.io",
+                "https://mainnet.optimism.io",
+                "https://sepolia.optimism.io",
+                "https://arb1.arbitrum.io/rpc",
+                "https://sepolia-rollup.arbitrum.io/rpc",
+                "https://nova.arbitrum.io/rpc",
+                "https://polygon-rpc.com",
+                "https://rpc-amoy.polygon.technology",
+                "https://api.avax.network/ext/bc/C/rpc",
+                "https://api.avax-test.network/ext/bc/C/rpc",
+                "https://bsc-dataseed1.binance.org",
+                "https://rpc.ankr.com/bsc_testnet_chapel",
+                "https://rpc.gnosischain.com",
+                "https://rpc.api.moonbeam.network",
+                "https://rpc.api.moonriver.moonbeam.network",
+                "https://rpc.testnet.moonbeam.network",
+                "https://sepolia.base.org",
+                "https://mainnet.base.org",
+                "https://sepolia.blast.io",
+                "https://rpc.blast.io",
+                "https://rpc.ankr.com/fantom/",
+                "https://rpc.ankr.com/fantom_testnet/",
+                "https://rpc.frax.com",
+                "https://rpc.testnet.frax.com",
+                "https://bartio.rpc.berachain.com",
+                "https://flare-api.flare.network/ext/C/rpc",
+                "https://coston2-api.flare.network/ext/C/rpc",
+                "https://mode.drpc.org",
+                "https://sepolia.mode.network",
+                "https://zora.drpc.org",
+                "https://sepolia.rpc.zora.energy",
+                "https://racemainnet.io",
+                "https://metall2.drpc.org",
+                "https://testnet.rpc.metall2.com",
+                "https://rpc.zero.thebinaryholdings.com",
+                "https://rpc.orderly.network",
+                "https://testnet-rpc.orderly.org",
+            ]
+            .into_iter()
+            .map(String::from)
+            .collect();
+
+            task::spawn(handle_http_outcalls(pic, result.evm.rpc_url(), urls));
+        }
+
         result
     }
 

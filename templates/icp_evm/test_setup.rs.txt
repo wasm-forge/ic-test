@@ -13,7 +13,7 @@ use crate::bindings::{ {% for c in canisters %}
 pub(crate) struct Env {
     pub icp_test: IcpTest,{% for c in canisters %}
     pub {{ c.var_name }}: {{c.service_name}},{% endfor %}{% for c in contracts %}
-    pub {{ c.var_name }}: {{c.name}}Instance<EvmUser, alloy_network::Ethereum>,{% endfor %}
+    pub {{ c.var_name }}: {{c.name}}Instance<EvmUser, alloy::network::Ethereum>,{% endfor %}
     pub evm_user: EvmUser,
 }
 

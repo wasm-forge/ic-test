@@ -4,6 +4,7 @@ use std::{
 };
 
 use anyhow::Result;
+use convert_case::{Case, Casing};
 
 use crate::{dfx_json::DfxCanister, ic_test_json::IcpTestSetup};
 
@@ -163,37 +164,30 @@ pub fn find_wasm(
         }
     }
 
-    // 2. try checking the wasm target folder
-    let canister_dir = get_main_project_dir()?.join(format!(
-        "target/wasm32-unknown-unknown/release/{canister_name}.wasm"
-    ));
-    files.push(canister_dir);
-    let canister_dir = get_main_project_dir()?.join(format!(
-        "target/wasm32-unknown-unknown/release/{canister_name}.wasm.gz"
-    ));
-    files.push(canister_dir);
+    // 2. target and .dfx folders
+    let main_project_dir = get_main_project_dir()?;
+    let snakecase_canister_name = canister_name.to_case(Case::Snake);
 
-    let canister_dir = get_main_project_dir()?.join(format!(
-        "target/wasm32-unknown-unknown/debug/{canister_name}.wasm"
-    ));
-    files.push(canister_dir);
-    let canister_dir = get_main_project_dir()?.join(format!(
-        "target/wasm32-unknown-unknown/debug/{canister_name}.wasm.gz"
-    ));
-    files.push(canister_dir);
+    let wasm_candidates = [
+        // target folders
+        format!("target/wasm32-unknown-unknown/release/{snakecase_canister_name}.wasm"),
+        format!("target/wasm32-unknown-unknown/release/{snakecase_canister_name}.wasm.gz"),
+        format!("target/wasm32-unknown-unknown/debug/{snakecase_canister_name}.wasm"),
+        format!("target/wasm32-unknown-unknown/debug/{snakecase_canister_name}.wasm.gz"),
+        format!("target/wasm32-unknown-unknown/release/{canister_name}.wasm"),
+        format!("target/wasm32-unknown-unknown/release/{canister_name}.wasm.gz"),
+        format!("target/wasm32-unknown-unknown/debug/{canister_name}.wasm"),
+        format!("target/wasm32-unknown-unknown/debug/{canister_name}.wasm.gz"),
+        // .dfx folder
+        format!(".dfx/local/canisters/{canister_name}/{canister_name}.wasm"),
+        format!(".dfx/local/canisters/{canister_name}/{canister_name}.wasm.gz"),
+    ];
 
-    // 3. try checking the .dfx folder
-    let canister_dir = get_main_project_dir()?.join(format!(
-        ".dfx/local/canisters/{canister_name}/{canister_name}.wasm"
-    ));
-    files.push(canister_dir);
+    for candidate in wasm_candidates {
+        files.push(main_project_dir.join(&candidate));
+    }
 
-    let canister_dir = get_main_project_dir()?.join(format!(
-        ".dfx/local/canisters/{canister_name}/{canister_name}.wasm.gz"
-    ));
-    files.push(canister_dir);
-
-    // 4. try the pull folder
+    // 3. try the pull folder
     let pull_dir = get_pull_folder(canister);
 
     if let Some(dir) = pull_dir {

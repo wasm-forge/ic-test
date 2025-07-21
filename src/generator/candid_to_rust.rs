@@ -91,7 +91,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
             // generate from candid_value
             canister.init_args_rust = candid_value_to_rust::generate_init_values(
-                canister_name,
+                &canister.var_name,
                 &env,
                 &actor,
                 values.as_ref(),

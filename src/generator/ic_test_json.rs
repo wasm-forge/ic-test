@@ -64,7 +64,8 @@ impl EvmSetup {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct IcpSetup {
     // Path to dfx.json file (default: "dfx.json")
-    pub dfx_json: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dfx_json: Option<String>,
 
     // Do not use dfx.json to collect information on the existing canisters
     pub skip_dfx_json: bool,
@@ -104,7 +105,7 @@ pub struct IcpTestSetup {
 impl Default for IcpSetup {
     fn default() -> Self {
         Self {
-            dfx_json: "dfx.json".to_string(),
+            dfx_json: Some("dfx.json".to_string()),
             skip_dfx_json: false,
             canisters: BTreeMap::new(),
         }
@@ -212,6 +213,14 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
     }
 
     setup.ui = args.ui == Some(true);
+
+    if let Some(dfx_json) = &args.dfx_json {
+        if dfx_json.is_empty() {
+            setup.icp_setup.dfx_json = None;
+        } else {
+            setup.icp_setup.dfx_json = Some(dfx_json.to_owned());
+        }
+    }
 
     if let Some(skip) = args.skip_dfx_json {
         setup.icp_setup.skip_dfx_json = skip;
