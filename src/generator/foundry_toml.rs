@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use convert_case::{Case, Casing};
-use log::debug;
+use log::{debug, info};
 use toml_edit::DocumentMut;
 
 use crate::ic_test_json::{ContractSetup, IcpTestSetup};
@@ -27,6 +27,8 @@ pub fn add_contract(
     sol_json: &Option<String>,
     setup: &mut IcpTestSetup,
 ) -> anyhow::Result<()> {
+    info!("Adding contract {contract_name}");
+
     if let Some(evm_setup) = &mut setup.evm_setup {
         let mut json = PathBuf::new();
 

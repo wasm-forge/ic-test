@@ -54,7 +54,11 @@ pub async fn handle_http_outcalls(
         for request in requests {
             let url = request.url.clone();
 
-            if rpc_nodes.contains(&url) {
+            let to_check = url.strip_suffix('/').unwrap_or(&url);
+            let to_check = to_check.strip_prefix("http://").unwrap_or(to_check);
+            let to_check = to_check.strip_prefix("https://").unwrap_or(to_check);
+
+            if rpc_nodes.contains(&to_check.to_string()) {
                 let response = forward_http(request, anvil.to_string()).await;
                 pic.mock_canister_http_response(response).await;
             } else {

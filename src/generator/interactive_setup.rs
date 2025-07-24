@@ -108,7 +108,7 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
 
             let regenerate = FuzzySelect::with_theme(&theme)
                             .with_prompt(format!(
-                                "Welcome to IC Test framework V{version}!\n\nYou are about to regenerate you test project bindings.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to regenerate the bindings now?"),
+                                "Welcome to IC Test framework V{version}!\n\nYou are about to regenerate your test project bindings.\nFor the best result make sure the project is fully compiled and built with 'dfx build'.\n\nDo you want to regenerate the bindings now?"),
                             )
                             .items(&yes_no)
                             .default(0)

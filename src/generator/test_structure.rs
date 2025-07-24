@@ -138,6 +138,10 @@ pub fn generate_test_setup_test_rs(
             .output()?;
 
         setup.test_setup_rs_regenerated = true;
+    } else {
+        println!(
+            "Skipped regenerating 'test_setup.rs'. Use the --force option to overwrite this file."
+        );
     }
 
     // generate tests.rs

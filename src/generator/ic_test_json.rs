@@ -309,7 +309,6 @@ pub fn init_test_config(args: &IcpTestArgs) -> anyhow::Result<IcpTestSetup> {
                     todo!("Adding a canister is currently not supported. To add one manually, modify the ic-test.json file directly.");
                 }
                 arguments::AddCommand::Contract { name, sol_json } => {
-                    info!("Adding contract {name}");
                     add_contract(name, sol_json, &mut setup)?;
                 }
             }
