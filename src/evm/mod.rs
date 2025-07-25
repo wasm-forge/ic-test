@@ -94,7 +94,7 @@ impl Evm {
         let signer: PrivateKeySigner = key.clone().into();
         let provider = ProviderBuilder::new()
             .wallet(EthereumWallet::from(signer))
-            .on_http(self.rpc_url.clone());
+            .connect_http(self.rpc_url.clone());
         let user = EvmUser {
             address,
             key,

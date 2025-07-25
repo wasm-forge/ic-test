@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.3.0]
+- ic-cdk v0.17.2
+- fix more generator errors
+- improved documentation
+- add derive standard traits to the generator
+- support a list of default EVM RPC URLs for automatic forwarding
+- fix some issues after switching to the latest alloy
+
 ## [v0.1.14]
 - set ic-cdk to v0.17.2
 - add improvements from v0.2.1

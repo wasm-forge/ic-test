@@ -1,6 +1,6 @@
 [package]
 name = "ic-test"
-version = "0.1.15"
+version = "0.3.0"
 edition = "2021"
 description = "This tool helps to organize IC Rust canister testing as well as cross-testing between ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
