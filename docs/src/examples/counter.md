@@ -4,7 +4,7 @@
 Let's create a simple project and test it using the `ic-test`.
 
 *Create a "Hello, World!" canister:*
-
+ 
 ```bash
 dfx new hello-ic-test --type rust --no-frontend
 ```

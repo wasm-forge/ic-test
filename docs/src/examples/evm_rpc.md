@@ -9,5 +9,5 @@ git clone https://github.com/wasm-forge/ic-test-examples.git
 
 In the cloned examples folder, enter the project `eth-balance`.
 
-The `eth-balance-backend` is a basic implementation of a canister that connects to the EVM-RPC canister and requests for a current Eth balance on any address.
+The `eth-balance-backend` is a basic implementation of a canister that connects to an EVM-RPC service and requests for a current Eth balance on any Ethereum address.
 
