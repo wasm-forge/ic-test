@@ -1,7 +1,7 @@
 # Changelog
 
 ## [v0.3.0]
-- ic-cdk v0.17.2
+- Stay with ic-cdk v0.17.2
 - fix more generator errors
 - improved documentation
 - add derive standard traits to the generator
