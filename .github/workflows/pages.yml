@@ -44,11 +44,11 @@ jobs:
           cd docs
           mdbook-admonish install
           mdbook build
+          cd ..
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs/book
+      - name: Check docs
+        run: |
+          ls docs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
