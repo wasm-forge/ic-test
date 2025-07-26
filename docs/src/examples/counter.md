@@ -1,5 +1,5 @@
 
-# "Counter" tutorial
+# "Counter" Tutorial
 
 Let's create a simple project and test it using the `ic-test`.
 

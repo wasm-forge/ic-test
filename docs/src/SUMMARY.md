@@ -5,5 +5,5 @@
     - [Command Line Interface](./command_line.md)
 
 - [Examples](./examples/examples.md)
-    - [Testing counter](./examples/counter.md)
-    - [EVM RPC integration](./examples/evm_rpc.md)
+    - [Counter Tutorial](./examples/counter.md)
+    - [EVM RPC Integration](./examples/evm_rpc.md)

@@ -6,6 +6,7 @@ description = "This tool helps to organize IC Rust canister testing as well as c
 keywords = ["ic", "internet-computer", "testing"]
 license = "MIT"
 repository = "https://github.com/wasm-forge/ic-test"
+exclude = ["docs", ".vscode", ".github"]
 
 [lib]
 name = "ic_test"
@@ -40,18 +41,18 @@ askama = "0.14"
 
 async-trait = "0.1.88"
 lazy_static = "1.4.0"
-cargo_metadata = "0.20.0"
+cargo_metadata = "0.21.0"
 thiserror = "2.0.12"
 slog = "2.7.0"
-toml_edit = "0.22"
+toml_edit = "0.23"
 git2 = "0.20"
 convert_case = "0.8.0"
 dirs = "6.0.0"
 pretty = "0.12"
 dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 
-alloy = { version = "1.0.18", features = ["full"], optional = true }
-alloy-node-bindings = { version = "1.0.18", optional = true }
+alloy = { version = "1.0.23", features = ["full"], optional = true }
+alloy-node-bindings = { version = "1.0.23", optional = true }
 
 candid = "0.10"
 pocket-ic = "9.0.2"
