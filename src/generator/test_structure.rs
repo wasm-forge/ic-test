@@ -191,19 +191,24 @@ pub fn generate_cargo_toml(setup: &IcpTestSetup) -> Result<(), Error> {
 
     let full_version = env!("CARGO_PKG_VERSION").to_string();
     let version_parts: Vec<&str> = full_version.split('.').collect();
-    let short_version = format!("{}.{}", version_parts[0], version_parts[1]);
+
+    let ic_test_dep_version = if full_version.contains("cdk") {
+        format!("{}.{}.0-cdk18", version_parts[0], version_parts[1])
+    } else {
+        format!("{}.{}", version_parts[0], version_parts[1])
+    };
 
     let content = if let Some(_evm_setup) = &setup.evm_setup {
         let template = CargoTomlIcpEvmTemplate {
             test_folder: &setup.test_folder,
-            ic_test_version: &short_version,
+            ic_test_version: &ic_test_dep_version,
         };
 
         template.render()?
     } else {
         let template = CargoTomlIcpTemplate {
             test_folder: &setup.test_folder,
-            ic_test_version: &short_version,
+            ic_test_version: &ic_test_dep_version,
         };
 
         template.render()?
