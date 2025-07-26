@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>EVM RPC integration - ic-test</title>
+        <title>EVM RPC Integration - ic-test</title>
 
 
         <!-- Custom HTML head -->
@@ -159,13 +159,16 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="evm-rpc-tutorial"><a class="header" href="#evm-rpc-tutorial">EVM RPC tutorial</a></h1>
-<p>In this examples we'll explore testing a canister integration with the Ethereum smart contracts.</p>
-<p>For a quick start, clone the ic-test examples repository:</p>
+                        <h1 id="evm-rpc-integration"><a class="header" href="#evm-rpc-integration">EVM RPC Integration</a></h1>
+<p>In this examples we'll explore testing a canister that uses integration with the Ethereum smart contracts and will see how one can create canister, EVM or the hybrid tests.</p>
+<p>For a quick start, clone the <a href="https://github.com/wasm-forge/ic-test-examples"><code>ic-test-examples</code></a> repository and enter the <code>eth-balance</code> project:</p>
 <pre><code class="language-bash">git clone https://github.com/wasm-forge/ic-test-examples.git
+cd ic-test-examples/eth-balance
 </code></pre>
-<p>In the cloned examples folder, enter the project <code>eth-balance</code>.</p>
-<p>The <code>eth-balance-backend</code> is a basic implementation of a canister that connects to an EVM-RPC service and requests for a current Eth balance on any Ethereum address.</p>
+<p>In the cloned examples repository enter the project <code>eth-balance</code>. It is a basic implementation of a canister that connects to an EVM-RPC service and requests for a current Eth balance on any Ethereum address. You can try deploy it and see that the canister actually works ( and start <code>dfx</code> if it not running already):</p>
+<pre><code class="language-bash">dfx start --background --clean
+dfx deploy
+</code></pre>
 
                     </main>
 

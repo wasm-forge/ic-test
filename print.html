@@ -209,8 +209,8 @@ The generated code and helpers provide:</p>
 </code></pre>
 <p>Regenerates bindings using the configuration in <code>ic-test.json</code>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="tutorials"><a class="header" href="#tutorials">Tutorials</a></h1>
-<p>Here are the tutorials demonstrating how to create the test projects with the <code>ic-test</code> tool.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="counter-tutorial"><a class="header" href="#counter-tutorial">"Counter" tutorial</a></h1>
+<p>Here are some tutorials demonstrating how to create the test projects with the <code>ic-test</code> tool.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="counter-tutorial"><a class="header" href="#counter-tutorial">"Counter" Tutorial</a></h1>
 <p>Let's create a simple project and test it using the <code>ic-test</code>.</p>
 <p><em>Create a "Hello, World!" canister:</em></p>
 <pre><code class="language-bash">dfx new hello-ic-test --type rust --no-frontend
@@ -364,13 +364,16 @@ async fn test_counter() {
 <p><em>Run tests:</em></p>
 <pre><code class="language-bash">cargo test
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="evm-rpc-tutorial"><a class="header" href="#evm-rpc-tutorial">EVM RPC tutorial</a></h1>
-<p>In this examples we'll explore testing a canister integration with the Ethereum smart contracts.</p>
-<p>For a quick start, clone the ic-test examples repository:</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="evm-rpc-integration"><a class="header" href="#evm-rpc-integration">EVM RPC Integration</a></h1>
+<p>In this examples we'll explore testing a canister that uses integration with the Ethereum smart contracts and will see how one can create canister, EVM or the hybrid tests.</p>
+<p>For a quick start, clone the <a href="https://github.com/wasm-forge/ic-test-examples"><code>ic-test-examples</code></a> repository and enter the <code>eth-balance</code> project:</p>
 <pre><code class="language-bash">git clone https://github.com/wasm-forge/ic-test-examples.git
+cd ic-test-examples/eth-balance
 </code></pre>
-<p>In the cloned examples folder, enter the project <code>eth-balance</code>.</p>
-<p>The <code>eth-balance-backend</code> is a basic implementation of a canister that connects to an EVM-RPC service and requests for a current Eth balance on any Ethereum address.</p>
+<p>In the cloned examples repository enter the project <code>eth-balance</code>. It is a basic implementation of a canister that connects to an EVM-RPC service and requests for a current Eth balance on any Ethereum address. You can try deploy it and see that the canister actually works ( and start <code>dfx</code> if it not running already):</p>
+<pre><code class="language-bash">dfx start --background --clean
+dfx deploy
+</code></pre>
 
                     </main>
 
