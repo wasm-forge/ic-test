@@ -193,7 +193,7 @@ pub fn generate_cargo_toml(setup: &IcpTestSetup) -> Result<(), Error> {
     let version_parts: Vec<&str> = full_version.split('.').collect();
 
     let ic_test_dep_version = if full_version.contains("cdk") {
-        format!("{}.{}.0+ic-cdk.0.18", version_parts[0], version_parts[1])
+        format!("{}.{}.0-cdk18", version_parts[0], version_parts[1])
     } else {
         format!("{}.{}", version_parts[0], version_parts[1])
     };

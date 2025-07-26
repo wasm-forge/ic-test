@@ -2853,7 +2853,7 @@ dependencies = [
 
 [[package]]
 name = "ic-test"
-version = "0.3.0+ic-cdk.0.18"
+version = "0.3.0-cdk18"
 dependencies = [
  "alloy",
  "alloy-node-bindings",
