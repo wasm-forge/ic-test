@@ -12,6 +12,7 @@ mod test_structure;
 use std::path::Path;
 
 use arguments::IcpTestArgs;
+use clap::Parser;
 use common::get_main_project_dir;
 use git2::{Repository, Status, StatusOptions};
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
@@ -143,7 +144,29 @@ fn main() -> anyhow::Result<()> {
     let version = env!("CARGO_PKG_VERSION");
     debug!("ic-test V{version}");
 
-    let args = interactive_setup::interactive_arguments()?;
+    let args = {
+        let args: Vec<String> = std::env::args().collect();
+        let argc = args.len();
+
+        if argc > 1 {
+            let result = IcpTestArgs::parse();
+
+            // if the root parameter was provided, change directory before doing anything else
+            if let Some(root) = &result.root {
+                std::env::set_current_dir(root)
+                    .expect("Failed to find the root directory, where to run the ic-test!");
+            }
+
+            if args[1] == "new" && argc == 2 {
+                interactive_setup::interactive_arguments()?
+            } else {
+                result
+            }
+        } else {
+            interactive_setup::interactive_arguments()?
+        }
+    };
+
     debug!("args: {args:?}");
 
     // initialize generator setup

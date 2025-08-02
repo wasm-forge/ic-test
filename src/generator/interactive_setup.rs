@@ -23,25 +23,6 @@ pub fn interactive_arguments() -> Result<IcpTestArgs, Error> {
     // check if we are in the main project folder
     let project_dir = get_main_project_dir()?;
 
-    let args: Vec<String> = std::env::args().collect();
-    let argc = args.len();
-
-    if argc > 1 {
-        let result = IcpTestArgs::parse();
-
-        // if the root parameter was provided, change directory before doing anything else
-        if let Some(root) = &result.root {
-            std::env::set_current_dir(root)
-                .expect("Failed to find the root directory, where to run the ic-test!");
-        }
-
-        if args[1] == "new" && argc == 2 {
-            // Special case: "new" command with no additional args — continue to UI mode
-        } else {
-            return Ok(result);
-        }
-    }
-
     let mut command = if project_dir.join("ic-test.json").is_file() {
         arguments::Command::Update {
             force: false,

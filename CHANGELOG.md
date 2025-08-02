@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.1]
+- Fix showing version number
+- test no_args
+
 ## [v0.3.0]
 - Stay with ic-cdk v0.17.2
 - fix more generator errors
