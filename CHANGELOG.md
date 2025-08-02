@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.2]
+- Use candid v0.10.16
+- Introduce temporary solution for incorrect concat
+
 ## [v0.3.1]
 - Fix showing version number
 - test no_args
