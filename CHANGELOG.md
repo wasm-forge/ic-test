@@ -2,7 +2,7 @@
 
 ## [v0.3.2]
 - Use candid v0.10.16
-- Introduce temporary solution for incorrect concat
+- Introduce temporary solution for the incorrect concat
 
 ## [v0.3.1]
 - Fix showing version number
