@@ -25,10 +25,10 @@ env_logger = "0.11.8"
 
 syn = "2.0.103"
 quote = "1.0"
-candid_parser = "0.1.4"
+candid_parser = "0.2.1"
 #ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
 #wf-cdk-bindgen = { path = "../wf-cdk-bindgen" }
-wf-cdk-bindgen = "0.1.6"
+wf-cdk-bindgen = "0.1.7"
 
 prettyplease = "0.2.34"
 serde_json = { version = "1.0", features = ["preserve_order"] }
@@ -54,7 +54,7 @@ dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 alloy = { version = "1.0.23", features = ["full"], optional = true }
 alloy-node-bindings = { version = "1.0.23", optional = true }
 
-candid = "0.10"
+candid = "0.10.16"
 pocket-ic = "9.0.2"
 ic-agent = "0.40.0"
 

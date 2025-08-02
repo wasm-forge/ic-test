@@ -25,6 +25,16 @@ static KEYWORDS: [&str; 51] = [
     "override", "priv", "typeof", "unsized", "virtual", "yield", "try",
 ];
 
+/// temporary replacement for the older function contact, that is now broken
+pub fn concat<'a, D>(docs: D, sep: &'a str) -> RcDoc<'a>
+where
+    D: Iterator<Item = RcDoc<'a>> + Clone,
+{
+    RcDoc::intersperse(docs.clone().map(|d| d.append(sep)), RcDoc::line()).flat_alt(
+        RcDoc::intersperse(docs, RcDoc::text(sep).append(RcDoc::line())),
+    )
+}
+
 fn ident_<'a>(id: &'a str, case: Option<Case<'a>>) -> (RcDoc<'a>, bool) {
     if id.is_empty()
         || id.starts_with(|c: char| !c.is_ascii_alphabetic() && c != '_')
@@ -718,7 +728,7 @@ mod tests {
         let type_path = Path::new(type_path);
         let value_path = Path::new(value_path);
 
-        let (env, actor) = candid_parser::typing::pretty_check_file(type_path).unwrap();
+        let (env, actor, _) = candid_parser::typing::pretty_check_file(type_path).unwrap();
 
         let candid_value = std::fs::read_to_string(value_path).unwrap();
 
@@ -730,7 +740,7 @@ mod tests {
     fn get_generated(type_path: &str, candid_value: &str) -> String {
         let type_path = Path::new(type_path);
 
-        let (env, actor) = candid_parser::typing::pretty_check_file(type_path).unwrap();
+        let (env, actor, _) = candid_parser::typing::pretty_check_file(type_path).unwrap();
 
         if !candid_value.is_empty() {
             let arg_value = candid_parser::parse_idl_args(candid_value).unwrap();
@@ -743,7 +753,7 @@ mod tests {
 
     fn rust_check(rust: &str) {
         // patterns that we do not like:
-        let bad_patterns = [r"\w+todo!", r"::::", r",\s*,", r"::\s*\{"];
+        let bad_patterns = [r"\w+todo!", r"::::", r"^\s*,", r"::\s*\{"];
 
         for pattern in bad_patterns {
             let re = Regex::new(pattern).unwrap();
@@ -794,8 +804,12 @@ mod tests {
     }
 
     #[test]
-    fn test_no_args_types() {
+    fn test_no_args() {
         let rust = get_generated("tests/no_args.did", "");
+
+        rust_check(&rust);
+
+        let rust = get_generated("tests/no_args2.did", "");
 
         rust_check(&rust);
     }

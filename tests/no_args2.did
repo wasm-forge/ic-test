@@ -1,4 +1,4 @@
-service : ( ) -> {
+service : {
   basic_fs_test : () -> ();
   compute_file_hash : (text) -> (text);
   do_fs_test : () -> (text);

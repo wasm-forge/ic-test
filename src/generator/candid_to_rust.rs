@@ -79,7 +79,7 @@ pub fn generate_bindings(setup: &mut IcpTestSetup) -> Result<(), Error> {
 
             config.set_canister_wasm_path(wasm_path.to_string_lossy().to_string());
 
-            let (env, actor) =
+            let (env, actor, _) =
                 candid_parser::typing::pretty_check_file(&expand_path(Path::new(&candid_path)))
                     .unwrap();
 
