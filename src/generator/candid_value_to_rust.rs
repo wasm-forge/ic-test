@@ -743,7 +743,7 @@ mod tests {
 
     fn rust_check(rust: &str) {
         // patterns that we do not like:
-        let bad_patterns = [r"\w+todo!", r"::::", r"::\s*\{"];
+        let bad_patterns = [r"\w+todo!", r"::::", r",\s*,", r"::\s*\{"];
 
         for pattern in bad_patterns {
             let re = Regex::new(pattern).unwrap();
@@ -789,6 +789,13 @@ mod tests {
             "tests/candid_types.did",
             "(variant { variant1 }, variant { tvar2 = variant { other_variant3 } }, record { rec_opt = variant { variant4 }; rec_vec_opt = vec { } })",
         );
+
+        rust_check(&rust);
+    }
+
+    #[test]
+    fn test_no_args_types() {
+        let rust = get_generated("tests/no_args.did", "");
 
         rust_check(&rust);
     }
