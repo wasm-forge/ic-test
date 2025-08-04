@@ -54,7 +54,7 @@ dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 alloy = { version = "1.0.23", features = ["full"], optional = true }
 alloy-node-bindings = { version = "1.0.23", optional = true }
 
-candid = "0.10.16"
+candid = "0.10.14"
 pocket-ic = "9.0.2"
 ic-agent = "0.40.0"
 
