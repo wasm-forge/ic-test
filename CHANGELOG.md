@@ -1,7 +1,7 @@
 # Changelog
 
 ## [v0.3.4]
-- Do not overwrite tests.rs if the tests folder exists
+- Fix incorrect function call generator when function names are long
 
 ## [v0.3.3]
 - Do not overwrite tests.rs if the tests folder exists
