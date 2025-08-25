@@ -1,6 +1,10 @@
 # Changelog
 
 ## [v0.3.2]
+- Do not overwrite tests.rs if the tests folder exists
+
+
+## [v0.3.2]
 - Use candid v0.10.16
 - Introduce temporary solution for the incorrect concat
 
