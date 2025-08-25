@@ -66,6 +66,7 @@ pub fn generate_test_setup_test_rs(
         .join("test_setup.rs");
 
     let tests_rs = get_test_project_dir(setup)?.join("src").join("tests.rs");
+    let tests_dir = get_test_project_dir(setup)?.join("src").join("tests");
 
     // check if we are ok to overwrite the 'test_setup.rs' file if we are in "ui" mode and this is an update command
     if args.ui == Some(true) && test_setup_rs.exists() {
@@ -136,8 +137,6 @@ pub fn generate_test_setup_test_rs(
             .arg("--edition")
             .arg("2021")
             .output()?;
-
-        setup.test_setup_rs_regenerated = true;
     } else {
         println!(
             "Skipped regenerating 'test_setup.rs'. Use the --force option to overwrite this file."
@@ -145,7 +144,7 @@ pub fn generate_test_setup_test_rs(
     }
 
     // generate tests.rs
-    if !tests_rs.exists() {
+    if !tests_rs.exists() && !tests_dir.exists() {
         let content = if let Some(evm_setup) = &setup.evm_setup {
             let contracts: Vec<ContractSetup> = evm_setup
                 .contracts
@@ -180,7 +179,7 @@ pub fn generate_test_setup_test_rs(
             .arg("2021")
             .output()?;
 
-        setup.test_setup_rs_regenerated = true;
+        setup.test_rs_regenerated = true;
     }
 
     Ok(())

@@ -189,7 +189,7 @@ fn main() -> anyhow::Result<()> {
             force: _,
         } = args.command
         {
-            if setup.test_setup_rs_regenerated {
+            if setup.test_rs_regenerated {
                 println!(
                 "A sample test file has been created: '{}/src/tests.rs'. You can modify this file to write your own tests.", setup.test_folder
             );

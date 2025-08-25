@@ -92,7 +92,7 @@ pub struct IcpTestSetup {
     pub ui: bool,
 
     #[serde(skip)]
-    pub test_setup_rs_regenerated: bool,
+    pub test_rs_regenerated: bool,
 
     // ICP settings
     pub icp_setup: IcpSetup,
@@ -133,7 +133,7 @@ impl Default for IcpTestSetup {
             icp_setup: IcpSetup::default(),
             evm_setup: None,
             is_complete: false,
-            test_setup_rs_regenerated: false,
+            test_rs_regenerated: false,
             ui: false,
         }
     }
