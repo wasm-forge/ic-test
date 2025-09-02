@@ -1,6 +1,6 @@
 [package]
 name = "ic-test"
-version = "0.3.5"
+version = "0.3.4"
 edition = "2021"
 description = "This tool helps to organize IC Rust canister testing as well as cross-testing between ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
@@ -23,24 +23,20 @@ clap = { version = "4.5.40", features = ["derive"] }
 anyhow = { version = "1.0.98", default-features = false }
 env_logger = "0.11.8"
 
-syn = "2.0.103"
-quote = "1.0"
 candid_parser = "0.2.1"
 #ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
 #wf-cdk-bindgen = { path = "../wf-cdk-bindgen" }
 wf-cdk-bindgen = "0.1.8"
 
-prettyplease = "0.2.34"
 serde_json = { version = "1.0", features = ["preserve_order"] }
 serde = "1.0.219"
 regress = "0.10.3"
-serde-json-schema = "0.1.1"
+reqwest = "0.12.23"
 tokio = { version = "1.45", features = ["full"] }
 askama = "0.14"
 
 async-trait = "0.1.88"
 lazy_static = "1.4.0"
-cargo_metadata = "0.21.0"
 thiserror = "2.0.12"
 slog = "2.7.0"
 toml_edit = "0.23"
@@ -55,7 +51,6 @@ alloy-node-bindings = { version = "1.0.23", optional = true }
 
 candid = "0.10.14"
 pocket-ic = "9.0.2"
-ic-agent = "0.42.0"
 
 ic-cdk = "0.17.2"
 
