@@ -14,41 +14,43 @@ use std::path::Path;
 use arguments::IcpTestArgs;
 use clap::Parser;
 use common::get_main_project_dir;
-use git2::{Repository, Status, StatusOptions};
+
 use ic_test_json::{init_test_config, store_test_config, IcpTestSetup};
 use log::{debug, error};
 
-fn has_uncommitted_changes(repo_path: &str, setup: &IcpTestSetup) -> Result<bool, git2::Error> {
-    let repo = match Repository::open(repo_path) {
-        Ok(r) => r,
-        Err(_) => return Ok(false),
-    };
+fn has_uncommitted_changes(_repo_path: &str, _setup: &IcpTestSetup) -> anyhow::Result<bool> {
+    /*
+        use git2::{Repository, Status, StatusOptions};
+        let repo = match Repository::open(repo_path) {
+            Ok(r) => r,
+            Err(_) => return Ok(false),
+        };
 
-    let statuses = repo.statuses(Some(
-        StatusOptions::new()
-            .include_untracked(true)
-            .renames_head_to_index(true)
-            .renames_index_to_workdir(true),
-    ))?;
+        let statuses = repo.statuses(Some(
+            StatusOptions::new()
+                .include_untracked(true)
+                .renames_head_to_index(true)
+                .renames_index_to_workdir(true),
+        ))?;
 
-    let test_folder = format!(
-        "{}/",
-        Path::new(&setup.test_folder)
-            .to_string_lossy()
-            .to_string()
-            .trim_end_matches('/')
-    );
+        let test_folder = format!(
+            "{}/",
+            Path::new(&setup.test_folder)
+                .to_string_lossy()
+                .to_string()
+                .trim_end_matches('/')
+        );
 
-    for entry in statuses.iter() {
-        if let Some(path) = entry.path() {
-            if (path == "Cargo.toml" || path.starts_with(&test_folder))
-                && entry.status() != Status::CURRENT
-            {
-                return Ok(true);
+        for entry in statuses.iter() {
+            if let Some(path) = entry.path() {
+                if (path == "Cargo.toml" || path.starts_with(&test_folder))
+                    && entry.status() != Status::CURRENT
+                {
+                    return Ok(true);
+                }
             }
         }
-    }
-
+    */
     Ok(false)
 }
 

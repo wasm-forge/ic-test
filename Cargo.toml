@@ -1,6 +1,6 @@
 [package]
 name = "ic-test"
-version = "0.3.4"
+version = "0.4.0"
 edition = "2021"
 description = "This tool helps to organize IC Rust canister testing as well as cross-testing between ICP and EVM."
 keywords = ["ic", "internet-computer", "testing"]
@@ -19,11 +19,11 @@ path = "src/generator/main.rs"
 
 [dependencies]
 log = "0.4.27"
-clap = { version = "4.5.40", features = ["derive"] }
+clap = { version = "4.5.53", features = ["derive"] }
 anyhow = { version = "1.0.98", default-features = false }
 env_logger = "0.11.8"
 
-candid_parser = "0.2.1"
+candid_parser = "0.2.3"
 #ic-cdk-bindgen = { path = "../cdk-rs/src/ic-cdk-bindgen" }
 #wf-cdk-bindgen = { path = "../wf-cdk-bindgen" }
 wf-cdk-bindgen = "0.1.8"
@@ -32,27 +32,27 @@ serde_json = { version = "1.0", features = ["preserve_order"] }
 serde = "1.0.219"
 regress = "0.10.3"
 reqwest = "0.12.23"
-tokio = { version = "1.45", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 askama = "0.14"
 
 async-trait = "0.1.88"
 lazy_static = "1.4.0"
 thiserror = "2.0.12"
-slog = "2.7.0"
+slog = "2.8.0"
 toml_edit = "0.23"
-git2 = {version = "0.20", default-features = false }
-convert_case = "0.8.0"
+
+convert_case = "0.10.0"
 dirs = "6.0.0"
 pretty = "0.12"
 dialoguer = { version = "0.11.0", features = ["fuzzy-select"] }
 
-alloy = { version = "1.0.23", features = ["full"], optional = true }
-alloy-node-bindings = { version = "1.0.23", optional = true }
+alloy = { version = "1.1.2", features = ["full"], optional = true }
+alloy-node-bindings = { version = "1.1.2", optional = true }
 
-candid = "0.10.14"
-pocket-ic = "9.0.2"
+candid = "0.10.19"
+pocket-ic = "10.0.0"
 
-ic-cdk = "0.17.2"
+ic-cdk = "0.19.0"
 
 [features]
 evm = ["dep:alloy", "dep:alloy-node-bindings"]

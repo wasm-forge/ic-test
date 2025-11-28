@@ -143,11 +143,11 @@ fn pp_value_type_error_comment<'a>(arg_type: &'a Type, arg_value: &'a IDLValue) 
     )
 }
 
-fn pp_todo(text: &str) -> RcDoc {
+fn pp_todo(text: &'_ str) -> RcDoc<'_> {
     RcDoc::text(format!("todo!() /* {text} */"))
 }
 
-fn pp_number(number: i128, suffix: &str) -> RcDoc {
+fn pp_number(number: i128, suffix: &'_ str) -> RcDoc<'_> {
     RcDoc::text(format!("{number}{suffix}"))
 }
 
